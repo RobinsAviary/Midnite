@@ -1,86 +1,291 @@
 ﻿using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-using System.Text;
 
 namespace SaverToy
 {
-    internal class CodeFile
+    public struct Colors
     {
-        public List<string> lines = [];
+        static public Color bg = new(16, 16, 16);
+        static public Color fg = new(250, 250, 250);
 
-        public CodeFile()
+        public Colors()
+        {
+
+        }
+    }
+
+    internal class Textbox
+    {
+        internal class SelectionState
+        {
+            private uint charStart = 0;
+            private uint charEnd = 0;
+            private uint lineStart = 0;
+            private uint lineEnd = 0;
+            private bool active = false;
+
+            public uint CharStart
+            {
+                get
+                {
+                    return charStart;
+                }
+
+                set
+                {
+                    charStart = value;
+                }
+            }
+
+            public uint CharEnd
+            {
+                get
+                {
+                    return charEnd;
+                }
+
+                set
+                {
+                    charEnd = value;
+                }
+            }
+
+            public uint LineStart
+            {
+                get
+                {
+                    return lineStart;
+                }
+
+                set
+                {
+                    lineStart = value;
+                }
+            }
+
+            public uint LineEnd
+            {
+                get
+                {
+                    return lineEnd;
+                }
+
+                set
+                {
+                    lineEnd = value;
+                }
+            }
+
+            public bool Active
+            {
+                get
+                {
+                    return active;
+                }
+
+                set
+                {
+                    active = value;
+                }
+            }
+
+            public SelectionState()
+            {
+
+            }
+        }
+
+        internal class TextCursor
+        {
+            private float blinkTime = .66f;
+            private bool blinkVisible = true;
+            private RectangleShape shape = new();
+
+            public Color Color
+            {
+                get
+                {
+                    return shape.FillColor;
+                }
+
+                set
+                {
+                    shape.FillColor = value;
+                }
+            }
+
+            public float BlinkTime
+            {
+                get
+                {
+                    return blinkTime;
+                }
+
+                set
+                {
+                    blinkTime = value;
+                }
+            }
+
+            public void Step()
+            {
+                if (timer.ElapsedTime.AsSeconds() > 1)
+                {
+                    blinkVisible = !blinkVisible;
+                    timer.Restart();
+                }
+            }
+
+            public void Draw(RenderTarget target)
+            {
+                target.Draw(shape);
+            }
+
+            readonly private Clock timer = new();
+            public TextCursor()
+            {
+                timer.Restart();
+
+            }
+        }
+
+        Text text = new();
+
+        public uint fontSize
+        {
+            get
+            {
+                return text.CharacterSize;
+            }
+
+            set
+            {
+                text.CharacterSize = value;
+            }
+        }
+
+        public Color FontColor
+        {
+            get
+            {
+                return text.FillColor;
+            }
+            set
+            {
+                text.FillColor = value;
+            }
+        }
+
+        public List<string> lines = [];
+        SelectionState selection = new();
+        TextCursor cursor = new();
+
+        private uint charPointer = 0;
+        private uint linePointer = 0;
+
+        public void MoveUp()
+        {
+            if (linePointer > 0)
+            {
+                linePointer--;
+                AlignCursor();
+            }
+        }
+
+        public void MoveDown()
+        {
+            if (linePointer < lines.Count())
+            {
+                linePointer++;
+                AlignCursor();
+            }
+        }
+
+        public void MoveLeft()
+        {
+            if (charPointer > 0) charPointer--;
+        }
+
+        public void MoveRight()
+        {
+            if (charPointer < CurrentLine.Length) charPointer++;
+        }
+
+        public string CurrentLine
+        {
+            set
+            {
+                lines[(int)charPointer] = value;
+            }
+            get
+            {
+                return lines[(int)charPointer];
+            }
+        }
+
+        private void AlignCursor()
+        {
+            if (charPointer >= CurrentLine.Length) charPointer = (uint)CurrentLine.Length;
+        }
+
+        public void Step()
+        {
+
+        }
+
+        public void Draw(RenderTarget target)
+        {
+            text.DisplayedString = "";
+
+            foreach (string str in lines)
+            {
+                text.DisplayedString += str;
+            }
+
+            text.FillColor = Color.White;
+            text.DisplayedString = "Hello, World!";
+            text.CharacterSize = 16;
+
+            target.Draw(text);
+        }
+
+        public Textbox()
         {
             lines.Add("");
         }
     }
 
-    internal class SelectionState
-    {
-        public uint charStart = 0;
-        public uint charEnd = 0;
-        public uint lineStart = 0;
-        public uint lineEnd = 0;
-        public bool active = false;
-
-        public SelectionState()
-        {
-
-        }
-    }
-
     internal class Program
     {
-        static void Window_Closed(object sender, EventArgs e)
+        public static class WindowEvent
         {
-            ((WindowBase)sender).Close();
-        }
+            public static void Closed(object sender, EventArgs e)
+            {
+                ((WindowBase)sender).Close();
+            }
 
-        static void Window_KeyReleased(object sender, KeyEventArgs e)
-        {
-            Keyboard.Key key = e.Code;
-        }
+            public static void KeyReleased(object sender, KeyEventArgs e)
+            {
+                Keyboard.Key key = e.Code;
+            }
 
-        static void Window_Resized(object sender, SizeEventArgs e)
-        {
-            FloatRect visible = new(0, 0, e.Width, e.Height);
+            public static void Resized(object sender, SizeEventArgs e)
+            {
+                FloatRect visible = new(0, 0, e.Width, e.Height);
 
-            ((RenderWindow)sender).SetView(new(visible));
-        }
+                ((RenderWindow)sender).SetView(new(visible));
+            }
 
-        static void Main(string[] args)
-        {
-            Color codeBg = new(16, 16, 16);
-            Color codeTextFill = new(250, 250, 250);
-
-            CodeFile file = new();
-            SelectionState selection = new();
-
-            uint linePointer = 0;
-            uint charPointer = 0;
-
-            void Window_TextEntered(object sender, TextEventArgs e)
+            public static void TextEntered(object sender, TextEventArgs e)
             {
                 if (e.Unicode == "\b")
                 {
-                    string line = file.lines[(int)linePointer];
 
-                    if (line.Length > 0)
-                    {
-                        if (charPointer > 0)
-                        {
-                            if (charPointer > 0) charPointer--;
-                            file.lines[(int)linePointer] = line.Remove((int)charPointer, 1);
-                        }
-                    } else if (file.lines.Count > 1)
-                    {
-                        file.lines.RemoveAt((int)linePointer);
-                        linePointer--;
-                    }                        
                 }
                 else if (e.Unicode.First() == (char)13) // Enter
                 {
-                    Console.WriteLine("Enter!");
+
                 }
                 else if (e.Unicode.First() == (char)1) // Ctrl-A
                 {
@@ -92,37 +297,15 @@ namespace SaverToy
                 }
                 else if (e.Unicode.First() == (char)22) // Paste
                 {
-                    file.lines[(int)linePointer] = file.lines[(int)linePointer].Insert((int)charPointer, Clipboard.Contents);
-                    charPointer += (uint)Clipboard.Contents.Length;
-                    resetCursorTimer();
+
                 }
                 else if (e.Unicode.First() > 31 || e.Unicode.First() == '\t')
                 {
-                    byte[] textBytes = Encoding.Unicode.GetBytes(e.Unicode);
 
-                    foreach (byte b in textBytes)
-                    {
-                        Console.WriteLine("{0}", b);
-                    }
-
-                    resetCursorTimer();
-
-                    charPointer++;
-
-                    string line = file.lines[(int)linePointer];
-
-
-                    if (charPointer < line.Length + 1)
-                    {
-                        file.lines[(int)linePointer] = line.Insert((int)charPointer - 1, e.Unicode);
-                    } else
-                    {
-                        file.lines[(int)linePointer] += e.Unicode;
-                    }
                 }
             }
 
-            void Window_KeyPressed(object sender, KeyEventArgs e)
+            public static void KeyPressed(object sender, KeyEventArgs e)
             {
                 Keyboard.Key key = e.Code;
 
@@ -133,138 +316,62 @@ namespace SaverToy
 
                 if (key == Keyboard.Key.Right)
                 {
-                    if (charPointer < file.lines[(int)linePointer].Length)
-                    {
-                        charPointer++;
-                    }
 
-                    resetCursorTimer();
                 }
 
                 if (key == Keyboard.Key.Left)
                 {
-                    if (charPointer > 0)
-                    {
-                        charPointer--;
-                    }
 
-                    resetCursorTimer();
                 }
 
                 if (key == Keyboard.Key.Up)
                 {
-                    if (linePointer > 0)
-                    {
-                        linePointer--;
-                        uint lineLength = (uint)file.lines[(int)linePointer].Length;
-                        if (charPointer > lineLength)
-                        {
-                            charPointer = lineLength;
-                        }
-                    }
+
                 }
 
                 if (key == Keyboard.Key.Down)
                 {
-                    if (linePointer < file.lines.Count() - 1)
-                    {
-                        linePointer++;
-                        uint lineLength = (uint)file.lines[(int)linePointer].Length;
-                        if (charPointer > lineLength)
-                        {
-                            charPointer = lineLength;
-                        }
-                    }
+
                 }
 
                 if (key == Keyboard.Key.Enter)
                 {
-                    file.lines.Insert((int)linePointer + 1, "");
-                    linePointer++;
-                    charPointer = 0;
+
                 }
 
                 if (key == Keyboard.Key.Delete)
                 {
-                    string line = file.lines[(int)linePointer];
 
-                    resetCursorTimer();
-
-                    if (charPointer < line.Length)
-                    {
-                        file.lines[(int)linePointer] = line.Remove((int)charPointer, 1);
-                    }
                 }
             }
+        }
 
-            Clock blinkTimer = new();
-            blinkTimer.Restart();
-            bool cursorActive = true;
+        static void Main(string[] args)
+        {
+            Textbox file = new();
 
             RenderWindow window = new(new(600, 400), "Test");
-            window.Closed += Window_Closed;
-            window.KeyPressed += Window_KeyPressed;
-            window.KeyReleased += Window_KeyReleased;
-            window.Resized += Window_Resized;
-            window.TextEntered += Window_TextEntered;
+            window.Closed += WindowEvent.Closed;
+            window.KeyPressed += WindowEvent.KeyPressed;
+            window.KeyReleased += WindowEvent.KeyReleased;
+            window.Resized += WindowEvent.Resized;
+            window.TextEntered += WindowEvent.TextEntered;
 
             Font font = new("resources/fonts/JetBrainsMono-Regular.ttf");
             font.SetSmooth(true);
-            uint fontSize = 16;
-
-            float getFontWidth()
-            {
-                Text text = new();
-                text.Font = font;
-                text.CharacterSize = 16;
-                text.DisplayedString = "M";
-
-                return text.GetLocalBounds().Size.X + 1;
-            }
-
-            void resetCursorTimer()
-            {
-                blinkTimer.Restart();
-                cursorActive = true;
-            }
 
             while (window.IsOpen)
             {
                 window.DispatchEvents();
 
-                if (blinkTimer.ElapsedTime.AsSeconds() > .66)
-                {
-                    blinkTimer.Restart();
-                    cursorActive = !cursorActive;
-                }
+                RectangleShape shape = new();
+                shape.FillColor = Color.White;
+                shape.Size = new(100, 100);
 
-                Text text = new();
-                text.Font = font;
-                text.FillColor = codeTextFill;
-                text.Position = new(0, 0);
-                text.CharacterSize = 16;
-                RectangleShape pointerShape = new();
-                pointerShape.FillColor = codeTextFill;
+                window.Draw(shape);
 
-                // Used to position cursor
-                text.DisplayedString = file.lines[(int)linePointer];
-                Text tempText = new(text);
-                tempText.DisplayedString = tempText.DisplayedString.Remove((int)charPointer);
-
-                FloatRect bounds = tempText.GetLocalBounds();
-
-                pointerShape.Position = new(bounds.Position.X + bounds.Size.X + 1, linePointer * fontSize);
-                pointerShape.Size = new(1, 16);
-                pointerShape.Origin = new(0, 0);
-
-                window.Clear(codeBg);
-                foreach (string line in file.lines)
-                {
-                    text.DisplayedString = line;
-                    window.Draw(text);
-                    text.Position = text.Position + new Vector2f(0, fontSize);
-                }
-                if (cursorActive) window.Draw(pointerShape);
+                file.Step();
+                file.Draw(window);
 
                 window.Display();
             }
