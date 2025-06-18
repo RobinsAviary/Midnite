@@ -152,7 +152,7 @@ namespace SaverToy
 
         Text text = new();
 
-        public uint fontSize
+        public uint FontSize
         {
             get
             {
@@ -177,12 +177,37 @@ namespace SaverToy
             }
         }
 
-        public List<string> lines = [];
+        public Font Font
+        {
+            get
+            {
+                return text.Font;
+            }
+            set
+            {
+                text.Font = value;
+            }
+        }
+
+        List<string> lines = [];
         SelectionState selection = new();
         TextCursor cursor = new();
 
         private uint charPointer = 0;
         private uint linePointer = 0;
+
+        List<string> Lines
+        {
+            get
+            {
+                return lines;
+            }
+        }
+
+        void AddLine(string text = "")
+        {
+            lines.Add(text);
+        }
 
         public void MoveUp()
         {
@@ -240,19 +265,20 @@ namespace SaverToy
 
             foreach (string str in lines)
             {
+                //Console.WriteLine(str);
                 text.DisplayedString += str;
             }
 
-            text.FillColor = Color.White;
-            text.DisplayedString = "Hello, World!";
-            text.CharacterSize = 16;
+            target.Clear(Colors.bg);
 
             target.Draw(text);
         }
 
         public Textbox()
         {
-            lines.Add("");
+            AddLine("");
+            text.CharacterSize = 16;
+            text.FillColor = Color.White;
         }
     }
 
@@ -279,30 +305,7 @@ namespace SaverToy
 
             public static void TextEntered(object sender, TextEventArgs e)
             {
-                if (e.Unicode == "\b")
-                {
-
-                }
-                else if (e.Unicode.First() == (char)13) // Enter
-                {
-
-                }
-                else if (e.Unicode.First() == (char)1) // Ctrl-A
-                {
-
-                }
-                else if (e.Unicode.First() == (char)3) // Copy
-                {
-
-                }
-                else if (e.Unicode.First() == (char)22) // Paste
-                {
-
-                }
-                else if (e.Unicode.First() > 31 || e.Unicode.First() == '\t')
-                {
-
-                }
+                   enteredText += e.Unicode;
             }
 
             public static void KeyPressed(object sender, KeyEventArgs e)
@@ -344,6 +347,51 @@ namespace SaverToy
 
                 }
             }
+
+            public static void FocusLost(object sender, EventArgs e)
+            {
+
+            }
+
+            public static void FocusGained(object sender, EventArgs e)
+            {
+
+            }
+
+            public static void MouseEntered(object sender, EventArgs e)
+            {
+
+            }
+
+            public static void MouseLeft(object sender, EventArgs e)
+            {
+
+            }
+
+            public static void MouseButtonPressed(object sender, MouseButtonEventArgs e)
+            {
+
+            }
+
+            public static void MouseButtonReleased(object sender, MouseButtonEventArgs e)
+            {
+
+            }
+        }
+
+        static private string enteredText = "";
+
+        static public string EnteredText
+        {
+            get
+            {
+                return enteredText;
+            }
+        }
+
+        static public void ClearEnteredText()
+        {
+            enteredText = "";
         }
 
         static void Main(string[] args)
@@ -356,19 +404,23 @@ namespace SaverToy
             window.KeyReleased += WindowEvent.KeyReleased;
             window.Resized += WindowEvent.Resized;
             window.TextEntered += WindowEvent.TextEntered;
+            window.GainedFocus += WindowEvent.FocusGained;
+            window.LostFocus += WindowEvent.FocusLost;
+            window.MouseLeft += WindowEvent.MouseLeft;
+            window.MouseEntered += WindowEvent.MouseEntered;
+            window.MouseButtonPressed += WindowEvent.MouseButtonReleased;
 
             Font font = new("resources/fonts/JetBrainsMono-Regular.ttf");
             font.SetSmooth(true);
+
+            file.Font = font;
 
             while (window.IsOpen)
             {
                 window.DispatchEvents();
 
-                RectangleShape shape = new();
-                shape.FillColor = Color.White;
-                shape.Size = new(100, 100);
-
-                window.Draw(shape);
+                file.CurrentLine += EnteredText;
+                ClearEnteredText();
 
                 file.Step();
                 file.Draw(window);
