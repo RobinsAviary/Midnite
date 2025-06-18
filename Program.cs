@@ -104,6 +104,8 @@ class SaverToy
             private bool blinkVisible = true;
             private RectangleShape shape = new();
 
+            private Textbox textbox;
+
             public Color Color
             {
                 get
@@ -130,6 +132,18 @@ class SaverToy
                 }
             }
 
+            public Vector2f Size
+            {
+                get
+                {
+                    return shape.Size;
+                }
+                set
+                {
+                    shape.Size = value;
+                }
+            }
+
             public void Step()
             {
                 if (timer.ElapsedTime.AsSeconds() > 1)
@@ -141,18 +155,21 @@ class SaverToy
 
             public void Draw(RenderTarget target)
             {
+                //text.DisplayedString = 
+                //shape.Position = new(, 0);
+
                 target.Draw(shape);
             }
 
             readonly private Clock timer = new();
-            public TextCursor()
+            public TextCursor(Textbox _textbox)
             {
                 timer.Restart();
-
+                textbox = _textbox;
             }
         }
 
-        Text text = new();
+        static private Text text = new();
 
         public uint FontSize
         {
@@ -164,6 +181,8 @@ class SaverToy
             set
             {
                 text.CharacterSize = value;
+
+                cursor.Size = new(1, value);
             }
         }
 
@@ -193,7 +212,7 @@ class SaverToy
 
         List<string> lines = [];
         SelectionState selection = new();
-        TextCursor cursor = new();
+        TextCursor cursor;
 
         private uint charPointer = 0;
         private uint linePointer = 0;
@@ -296,8 +315,9 @@ class SaverToy
         public Textbox()
         {
             AddLine("");
-            text.CharacterSize = 16;
             text.FillColor = Color.White;
+            cursor = new(this);
+            FontSize = 16;
         }
     }
 
