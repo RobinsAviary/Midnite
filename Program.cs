@@ -20,6 +20,14 @@ class SaverToy
             return events.ReleasedKeys.Contains(key);
         }
 
+        public string TypedText
+        {
+            get
+            {
+                return events.TypedText;
+            }
+        }
+
         public void Run()
         {
             Textbox file = new(this);

@@ -273,7 +273,7 @@ internal class Textbox
 
     public void Step()
     {
-        foreach (char c in events.TypedText)
+        foreach (char c in program.TypedText)
         {
             if ((char)c == '\b')
             {
