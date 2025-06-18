@@ -7,18 +7,41 @@ public class WindowEvent
     private List<Keyboard.Key> pressedKeys = [];
     private List<Keyboard.Key> releasedKeys = [];
 
-    List<Keyboard.Key> FlushPressedKeys()
+    public List<Keyboard.Key> PressedKeys
     {
-        List<Keyboard.Key> result = pressedKeys; // We have to make a copy so we can clear everything before returning.
-        pressedKeys.Clear();
-        return result;
+        get
+        {
+            return pressedKeys;
+        }
     }
 
-    List<Keyboard.Key> FlushReleasedKeys()
+    public List<Keyboard.Key> ReleasedKeys
     {
-        List<Keyboard.Key> result = releasedKeys;
+        get
+        {
+            return releasedKeys;
+        }
+    }
+
+    string typedText = "";
+
+    public string TypedText
+    {
+        get
+        {
+            return typedText;
+        }
+    }
+
+    public void ClearTypedText()
+    {
+        typedText = "";
+    }
+
+    public void ClearKeys()
+    {
         releasedKeys.Clear();
-        return result;
+        pressedKeys.Clear();
     }
 
     public void Closed(object sender, EventArgs e)
@@ -40,7 +63,7 @@ public class WindowEvent
 
     public void TextEntered(object sender, TextEventArgs e)
     {
-        enteredText += e.Unicode;
+        typedText += e.Unicode;
     }
 
     public void KeyPressed(object sender, KeyEventArgs e)

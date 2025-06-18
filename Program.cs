@@ -6,30 +6,23 @@ using System.Text.Encodings.Web;
 
 class SaverToy
 {
-    static internal string enteredText = "";
-
-    static public string EnteredText
-    {
-        get
-        {
-            return enteredText;
-        }
-    }
-
-    static public void ClearEnteredText()
-    {
-        enteredText = "";
-    }
-
     internal class Program
     {
-        
+        WindowEvent events = new();
 
-        static void Main(string[] args)
+        bool IsKeyPressed(Keyboard.Key key)
         {
-            Textbox file = new();
+            return events.PressedKeys.Contains(key);
+        }
 
-            WindowEvent events = new();
+        bool IsKeyReleased(Keyboard.Key key)
+        {
+            return events.ReleasedKeys.Contains(key);
+        }
+
+        public void Run()
+        {
+            Textbox file = new(this);
 
             RenderWindow window = new(new(600, 400), "Test");
             window.Closed += events.Closed;
@@ -56,9 +49,17 @@ class SaverToy
                 file.Step();
                 file.Draw(window);
 
-                ClearEnteredText();
+                events.ClearKeys();
+                events.ClearTypedText();
                 window.Display();
             }
         }
+    }
+
+    static void Main(string[] args)
+    {
+        Program program = new();
+
+        program.Run();
     }
 }

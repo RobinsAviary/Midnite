@@ -163,6 +163,8 @@ internal class Textbox
         }
     }
 
+    Program program;
+
     static private Text text = new();
 
     public uint FontSize
@@ -271,7 +273,7 @@ internal class Textbox
 
     public void Step()
     {
-        foreach (char c in EnteredText)
+        foreach (char c in events.TypedText)
         {
             if ((char)c == '\b')
             {
@@ -308,11 +310,12 @@ internal class Textbox
         cursor.Draw(target);
     }
 
-    public Textbox()
+    public Textbox(Program _program)
     {
         AddLine("");
         text.FillColor = Color.White;
         cursor = new(this);
         FontSize = 16;
+        program = _program;
     }
 }
