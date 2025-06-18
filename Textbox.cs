@@ -88,6 +88,7 @@ internal class Textbox
         private float blinkTime = .66f;
         private bool blinkVisible = true;
         private RectangleShape shape = new();
+        public int OffsetX = 1;
 
         private Textbox textbox;
 
@@ -140,8 +141,16 @@ internal class Textbox
 
         public void Draw(RenderTarget target)
         {
-            //text.DisplayedString = 
-            //shape.Position = new(, 0);
+            Text text = new();
+
+            text.DisplayedString = textbox.CurrentLine.Remove((int)textbox.charPointer);
+            text.Font = textbox.Font;
+            text.CharacterSize = textbox.FontSize;
+            text.FillColor = textbox.FontColor;
+            uint width = (uint)text.GetLocalBounds().Width;
+
+            string test = textbox.CurrentLine;
+            shape.Position = new(width + OffsetX, 0);
 
             target.Draw(shape);
         }
@@ -247,11 +256,11 @@ internal class Textbox
     {
         set
         {
-            lines[(int)charPointer] = value;
+            lines[(int)linePointer] = value;
         }
         get
         {
-            return lines[(int)charPointer];
+            return lines[(int)linePointer];
         }
     }
 
@@ -269,11 +278,13 @@ internal class Textbox
                 if (CurrentLine.Length > 0)
                 {
                     CurrentLine = CurrentLine.Remove(CurrentLine.Length - 1, 1);
+                    MoveLeft();
                 }
             }
             else if ((char)c > 31 || c == '\t')
             {
                 CurrentLine += c;
+                MoveRight();
             }
         }
 
