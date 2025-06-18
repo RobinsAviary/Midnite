@@ -1,8 +1,10 @@
 ﻿using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using System.Text;
+using System.Text.Encodings.Web;
 
-namespace SaverToy
+class SaverToy
 {
     public struct Colors
     {
@@ -256,7 +258,22 @@ namespace SaverToy
 
         public void Step()
         {
+            foreach (char c in EnteredText)
+            {
+                if ((char)c == '\b')
+                {
+                    if (CurrentLine.Length > 0)
+                    {
+                        CurrentLine = CurrentLine.Remove(CurrentLine.Length - 1, 1);
+                    }
+                }
+                else if ((char)c > 31 || c == '\t')
+                {
+                    CurrentLine += c;
+                }
+            }
 
+            cursor.Step();
         }
 
         public void Draw(RenderTarget target)
@@ -272,6 +289,8 @@ namespace SaverToy
             target.Clear(Colors.bg);
 
             target.Draw(text);
+
+            cursor.Draw(target);
         }
 
         public Textbox()
@@ -282,117 +301,119 @@ namespace SaverToy
         }
     }
 
-    internal class Program
+    public static class WindowEvent
     {
-        public static class WindowEvent
+        public static void Closed(object sender, EventArgs e)
         {
-            public static void Closed(object sender, EventArgs e)
+            ((WindowBase)sender).Close();
+        }
+
+        public static void KeyReleased(object sender, KeyEventArgs e)
+        {
+            Keyboard.Key key = e.Code;
+        }
+
+        public static void Resized(object sender, SizeEventArgs e)
+        {
+            FloatRect visible = new(0, 0, e.Width, e.Height);
+
+            ((RenderWindow)sender).SetView(new(visible));
+        }
+
+        public static void TextEntered(object sender, TextEventArgs e)
+        {
+            enteredText += e.Unicode;
+        }
+
+        public static void KeyPressed(object sender, KeyEventArgs e)
+        {
+            Keyboard.Key key = e.Code;
+
+            if (key == Keyboard.Key.Escape)
             {
                 ((WindowBase)sender).Close();
             }
 
-            public static void KeyReleased(object sender, KeyEventArgs e)
-            {
-                Keyboard.Key key = e.Code;
-            }
-
-            public static void Resized(object sender, SizeEventArgs e)
-            {
-                FloatRect visible = new(0, 0, e.Width, e.Height);
-
-                ((RenderWindow)sender).SetView(new(visible));
-            }
-
-            public static void TextEntered(object sender, TextEventArgs e)
-            {
-                   enteredText += e.Unicode;
-            }
-
-            public static void KeyPressed(object sender, KeyEventArgs e)
-            {
-                Keyboard.Key key = e.Code;
-
-                if (key == Keyboard.Key.Escape)
-                {
-                    ((WindowBase)sender).Close();
-                }
-
-                if (key == Keyboard.Key.Right)
-                {
-
-                }
-
-                if (key == Keyboard.Key.Left)
-                {
-
-                }
-
-                if (key == Keyboard.Key.Up)
-                {
-
-                }
-
-                if (key == Keyboard.Key.Down)
-                {
-
-                }
-
-                if (key == Keyboard.Key.Enter)
-                {
-
-                }
-
-                if (key == Keyboard.Key.Delete)
-                {
-
-                }
-            }
-
-            public static void FocusLost(object sender, EventArgs e)
+            if (key == Keyboard.Key.Right)
             {
 
             }
 
-            public static void FocusGained(object sender, EventArgs e)
+            if (key == Keyboard.Key.Left)
             {
 
             }
 
-            public static void MouseEntered(object sender, EventArgs e)
+            if (key == Keyboard.Key.Up)
             {
 
             }
 
-            public static void MouseLeft(object sender, EventArgs e)
+            if (key == Keyboard.Key.Down)
             {
 
             }
 
-            public static void MouseButtonPressed(object sender, MouseButtonEventArgs e)
+            if (key == Keyboard.Key.Enter)
             {
 
             }
 
-            public static void MouseButtonReleased(object sender, MouseButtonEventArgs e)
+            if (key == Keyboard.Key.Delete)
             {
 
             }
         }
 
-        static private string enteredText = "";
-
-        static public string EnteredText
+        public static void FocusLost(object sender, EventArgs e)
         {
-            get
-            {
-                return enteredText;
-            }
+
         }
 
-        static public void ClearEnteredText()
+        public static void FocusGained(object sender, EventArgs e)
         {
-            enteredText = "";
+
         }
+
+        public static void MouseEntered(object sender, EventArgs e)
+        {
+
+        }
+
+        public static void MouseLeft(object sender, EventArgs e)
+        {
+
+        }
+
+        public static void MouseButtonPressed(object sender, MouseButtonEventArgs e)
+        {
+
+        }
+
+        public static void MouseButtonReleased(object sender, MouseButtonEventArgs e)
+        {
+
+        }
+    }
+
+    static private string enteredText = "";
+
+    static public string EnteredText
+    {
+        get
+        {
+            return enteredText;
+        }
+    }
+
+    static public void ClearEnteredText()
+    {
+        enteredText = "";
+    }
+
+    internal class Program
+    {
+        
 
         static void Main(string[] args)
         {
@@ -419,12 +440,10 @@ namespace SaverToy
             {
                 window.DispatchEvents();
 
-                file.CurrentLine += EnteredText;
-                ClearEnteredText();
-
                 file.Step();
                 file.Draw(window);
 
+                ClearEnteredText();
                 window.Display();
             }
         }
