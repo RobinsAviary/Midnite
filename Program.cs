@@ -29,17 +29,20 @@ class SaverToy
         {
             Textbox file = new();
 
+            WindowEvent events = new();
+
             RenderWindow window = new(new(600, 400), "Test");
-            window.Closed += WindowEvent.Closed;
-            window.KeyPressed += WindowEvent.KeyPressed;
-            window.KeyReleased += WindowEvent.KeyReleased;
-            window.Resized += WindowEvent.Resized;
-            window.TextEntered += WindowEvent.TextEntered;
-            window.GainedFocus += WindowEvent.FocusGained;
-            window.LostFocus += WindowEvent.FocusLost;
-            window.MouseLeft += WindowEvent.MouseLeft;
-            window.MouseEntered += WindowEvent.MouseEntered;
-            window.MouseButtonPressed += WindowEvent.MouseButtonReleased;
+            window.Closed += events.Closed;
+            window.KeyPressed += events.KeyPressed;
+            window.KeyReleased += events.KeyReleased;
+            window.Resized += events.Resized;
+            window.TextEntered += events.TextEntered;
+            window.GainedFocus += events.FocusGained;
+            window.LostFocus += events.FocusLost;
+            window.MouseLeft += events.MouseLeft;
+            window.MouseEntered += events.MouseEntered;
+            window.MouseButtonPressed += events.MouseButtonPressed;
+            window.MouseButtonReleased += events.MouseButtonReleased;
 
             Font font = new("resources/fonts/JetBrainsMono-Regular.ttf");
             font.SetSmooth(true);
