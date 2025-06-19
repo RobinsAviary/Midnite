@@ -171,8 +171,8 @@ internal class Textbox
                     textHeight.DisplayedString += "A";
                 }
 
-                Console.WriteLine("");
-                Console.WriteLine(textHeight.DisplayedString);
+                //Console.WriteLine("");
+                //Console.WriteLine(textHeight.DisplayedString);
 
                 uint height = (uint)textHeight.GetGlobalBounds().Height;
 
