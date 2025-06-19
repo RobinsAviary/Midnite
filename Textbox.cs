@@ -159,9 +159,10 @@ internal class Textbox
 
                 Text textHeight = new(text);
 
-                uint numberOfLines = (uint)textbox.Lines.Count();
+                //uint numberOfLines = (uint)textbox.Lines.Count();
                 textHeight.DisplayedString = "";
-                for (uint i = 0; i < numberOfLines; i++)
+
+                for (uint i = 0; i < textbox.linePointer + 1; i++)
                 {
                     if (i != 0)
                     {
@@ -175,7 +176,7 @@ internal class Textbox
 
                 uint height = (uint)textHeight.GetGlobalBounds().Height;
 
-                shape.Origin = new(0, text.CharacterSize * 0.6875f);
+                shape.Origin = new(0, textbox.FontSize * .6875f);
 
                 shape.Position = new(width + OffsetX, height);
 
