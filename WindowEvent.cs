@@ -63,6 +63,8 @@ public class WindowEvent
 
     public void TextEntered(object sender, TextEventArgs e)
     {
+        Console.WriteLine("Entered");
+
         typedText += e.Unicode;
     }
 

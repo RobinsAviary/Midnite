@@ -1,6 +1,6 @@
 ﻿using SFML.Graphics;
 using SFML.System;
-
+using SFML.Window;
 using static SaverToy;
 
 internal class Textbox
@@ -237,7 +237,7 @@ internal class Textbox
 
     public void MoveDown()
     {
-        if (linePointer < lines.Count())
+        if (linePointer < lines.Count() - 1)
         {
             linePointer++;
             AlignCursor();
@@ -273,19 +273,31 @@ internal class Textbox
 
     public void Step()
     {
+        if (program.IsKeyPressed(Keyboard.Key.Left)) MoveLeft();
+        if (program.IsKeyPressed(Keyboard.Key.Right)) MoveRight();
+        if (program.IsKeyPressed(Keyboard.Key.Up)) MoveUp();
+        if (program.IsKeyPressed(Keyboard.Key.Down)) MoveDown();
+
         foreach (char c in program.TypedText)
         {
             if ((char)c == '\b')
             {
-                if (CurrentLine.Length > 0)
+                if (CurrentLine.Length > 0 && charPointer > 0)
                 {
-                    CurrentLine = CurrentLine.Remove(CurrentLine.Length - 1, 1);
+                    CurrentLine = CurrentLine.Remove((int)charPointer - 1, 1);
                     MoveLeft();
                 }
             }
             else if ((char)c > 31 || c == '\t')
             {
-                CurrentLine += c;
+                if (CurrentLine.Length < 1)
+                {
+                    CurrentLine = c.ToString();
+                } else
+                {
+                    CurrentLine = CurrentLine.Insert((int)charPointer, c.ToString());
+                }
+
                 MoveRight();
             }
         }
@@ -299,7 +311,6 @@ internal class Textbox
 
         foreach (string str in lines)
         {
-            //Console.WriteLine(str);
             text.DisplayedString += str;
         }
 

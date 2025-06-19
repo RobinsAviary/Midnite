@@ -10,12 +10,12 @@ class SaverToy
     {
         WindowEvent events = new();
 
-        bool IsKeyPressed(Keyboard.Key key)
+        public bool IsKeyPressed(Keyboard.Key key)
         {
             return events.PressedKeys.Contains(key);
         }
 
-        bool IsKeyReleased(Keyboard.Key key)
+        public bool IsKeyReleased(Keyboard.Key key)
         {
             return events.ReleasedKeys.Contains(key);
         }
