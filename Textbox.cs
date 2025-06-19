@@ -394,7 +394,6 @@ internal class Textbox
             }
             else if ((char)c == 22) // Paste
             {
-                // TODO: Fix
                 string[] clipboardParsed = Clipboard.Contents.Split('\n');
 
                 if (clipboardParsed.Length > 0)
