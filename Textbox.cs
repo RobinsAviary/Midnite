@@ -132,7 +132,7 @@ internal class Textbox
 
         public void Step()
         {
-            if (timer.ElapsedTime.AsSeconds() > 1)
+            if (timer.ElapsedTime.AsSeconds() > blinkTime)
             {
                 blinkVisible = !blinkVisible;
                 timer.Restart();
@@ -141,18 +141,21 @@ internal class Textbox
 
         public void Draw(RenderTarget target)
         {
-            Text text = new();
+            if (blinkVisible)
+            {
+                Text text = new();
 
-            text.DisplayedString = textbox.CurrentLine.Remove((int)textbox.charPointer);
-            text.Font = textbox.Font;
-            text.CharacterSize = textbox.FontSize;
-            text.FillColor = textbox.FontColor;
-            uint width = (uint)text.GetLocalBounds().Width;
+                text.DisplayedString = textbox.CurrentLine.Remove((int)textbox.charPointer);
+                text.Font = textbox.Font;
+                text.CharacterSize = textbox.FontSize;
+                text.FillColor = textbox.FontColor;
+                uint width = (uint)text.GetLocalBounds().Width;
 
-            string test = textbox.CurrentLine;
-            shape.Position = new(width + OffsetX, 0);
+                string test = textbox.CurrentLine;
+                shape.Position = new(width + OffsetX, 0);
 
-            target.Draw(shape);
+                target.Draw(shape);
+            }
         }
 
         readonly private Clock timer = new();
@@ -280,7 +283,23 @@ internal class Textbox
 
         foreach (char c in program.TypedText)
         {
-            if ((char)c == '\b')
+            if ((char)c == 1) // Ctrl+A
+            {
+
+            }
+            else if ((char)c == 24) // Cut
+            {
+
+            }
+            else if ((char)c == 3) // Copy
+            {
+
+            }
+            else if ((char)c == 22) // Paste
+            {
+
+            }
+            else if ((char)c == '\b')
             {
                 if (CurrentLine.Length > 0 && charPointer > 0)
                 {
