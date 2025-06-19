@@ -275,12 +275,22 @@ internal class Textbox
     public void MoveLeft(uint dist = 1)
     {
         if (charPointer > 0) charPointer -= dist;
+        else if (linePointer > 0)
+        {
+            linePointer--;
+            charPointer = (uint)CurrentLine.Length;
+        }
         cursor.ResetBlinking();
     }
 
     public void MoveRight(uint dist = 1)
     {
         if (charPointer < CurrentLine.Length) charPointer += dist;
+        else if (linePointer < lines.Count() - 1)
+        {
+            linePointer++;
+            charPointer = 0;
+        }
         cursor.ResetBlinking();
     }
 
@@ -324,9 +334,17 @@ internal class Textbox
         if (program.IsKeyPressed(Keyboard.Key.Down)) MoveDown();
         if (program.IsKeyPressed(Keyboard.Key.Delete))
         {
-            if (CurrentLine.Length > 0 && charPointer < CurrentLine.Length)
+            if (charPointer < CurrentLine.Length)
             {
-                CurrentLine = CurrentLine.Remove((int)charPointer, 1);
+                if (CurrentLine.Length > 0)
+                {
+                    CurrentLine = CurrentLine.Remove((int)charPointer, 1);
+                }
+            }
+            else if (linePointer < lines.Count - 1)
+            {
+                CurrentLine += lines[(int)linePointer + 1];
+                Lines.RemoveAt((int)linePointer + 1);
             }
 
             cursor.ResetBlinking();
@@ -357,6 +375,7 @@ internal class Textbox
             //lines.Add("");
             linePointer++;
             AlignCursor();
+            cursor.ResetBlinking();
         }
 
         foreach (char c in program.TypedText)
@@ -383,6 +402,16 @@ internal class Textbox
                 {
                     CurrentLine = CurrentLine.Remove((int)charPointer - 1, 1);
                     MoveLeft();
+                }
+
+                if (linePointer > 0 && charPointer == 0)
+                {
+                    cursor.ResetBlinking();
+                    charPointer = (uint)lines[(int)linePointer - 1].Length;
+
+                    Lines[(int)linePointer - 1] += CurrentLine;
+                    Lines.RemoveAt((int)linePointer);
+                    linePointer--;
                 }
             }
             else if ((char)c > 31 || c == '\t')

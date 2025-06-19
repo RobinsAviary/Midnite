@@ -32,7 +32,7 @@ class SaverToy
         {
             Textbox file = new(this);
 
-            RenderWindow window = new(new(600, 400), "Test");
+            RenderWindow window = new(new(600, 400), "SaverToy");
             window.Closed += events.Closed;
             window.KeyPressed += events.KeyPressed;
             window.KeyReleased += events.KeyReleased;
