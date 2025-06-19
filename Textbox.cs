@@ -118,6 +118,12 @@ internal class Textbox
             }
         }
 
+        public void ResetBlinking()
+        {
+            blinkVisible = true;
+            timer.Restart();
+        }
+
         public Vector2f Size
         {
             get
@@ -236,6 +242,7 @@ internal class Textbox
             linePointer--;
             AlignCursor();
         }
+        cursor.ResetBlinking();
     }
 
     public void MoveDown()
@@ -245,16 +252,19 @@ internal class Textbox
             linePointer++;
             AlignCursor();
         }
+        cursor.ResetBlinking();
     }
 
     public void MoveLeft()
     {
         if (charPointer > 0) charPointer--;
+        cursor.ResetBlinking();
     }
 
     public void MoveRight()
     {
         if (charPointer < CurrentLine.Length) charPointer++;
+        cursor.ResetBlinking();
     }
 
     public string CurrentLine
