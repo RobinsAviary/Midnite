@@ -394,7 +394,27 @@ internal class Textbox
             }
             else if ((char)c == 22) // Paste
             {
-                InsertHere(Clipboard.Contents);
+                // TODO: Fix
+                string[] clipboardParsed = Clipboard.Contents.Split('\n');
+
+                if (clipboardParsed.Length > 0)
+                {
+                    string backHalf = CurrentLine.Substring((int)charPointer);
+                    CurrentLine = CurrentLine.Remove((int)charPointer);
+
+                    CurrentLine += clipboardParsed[0].Remove(clipboardParsed[0].Length - 1);
+
+                    for (int i = 1; i < clipboardParsed.Length; i++)
+                    {
+                        string clipLine = clipboardParsed[i];
+                        clipLine = clipLine.Remove(clipLine.Length - 1);
+
+                        AddLine(clipLine);
+                        linePointer++;
+                    }
+
+                    CurrentLine += backHalf;
+                }
             }
             else if ((char)c == '\b')
             {
