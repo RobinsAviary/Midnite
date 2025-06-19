@@ -1,4 +1,5 @@
-﻿using SFML.Graphics;
+﻿using MoonSharp.Interpreter.Interop.LuaStateInterop;
+using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 using static SaverToy;
@@ -88,7 +89,7 @@ internal class Textbox
         private float blinkTime = .66f;
         private bool blinkVisible = true;
         private RectangleShape shape = new();
-        public int OffsetX = 1;
+        public int OffsetX = 0;
 
         private Textbox textbox;
 
@@ -151,15 +152,14 @@ internal class Textbox
             {
                 Text text = new();
 
-                text.DisplayedString = textbox.CurrentLine.Remove((int)textbox.charPointer);
+                text.DisplayedString = textbox.CurrentLine;
                 text.Font = textbox.Font;
                 text.CharacterSize = textbox.FontSize;
                 text.FillColor = textbox.FontColor;
-                uint width = (uint)text.GetLocalBounds().Width;
+                uint width = (uint)text.FindCharacterPos(textbox.charPointer).X;
 
                 Text textHeight = new(text);
 
-                //uint numberOfLines = (uint)textbox.Lines.Count();
                 textHeight.DisplayedString = "";
 
                 for (uint i = 0; i < textbox.linePointer + 1; i++)
@@ -423,7 +423,7 @@ internal class Textbox
                     MoveLeft();
                 }
 
-                if (linePointer > 0 && charPointer == 0)
+                else if (linePointer > 0 && charPointer == 0)
                 {
                     cursor.ResetBlinking();
                     charPointer = (uint)lines[(int)linePointer - 1].Length;
