@@ -171,9 +171,6 @@ internal class Textbox
                     textHeight.DisplayedString += "A";
                 }
 
-                //Console.WriteLine("");
-                //Console.WriteLine(textHeight.DisplayedString);
-
                 uint height = (uint)textHeight.GetGlobalBounds().Height;
 
                 shape.Origin = new(0, textbox.FontSize * .6875f);
@@ -347,7 +344,17 @@ internal class Textbox
         }
         if (program.IsKeyPressed(Keyboard.Key.Enter))
         {
-            lines.Add("");
+            if (charPointer == 0)
+            {
+                lines.Insert((int)linePointer, "");
+            } else
+            {
+                lines.Insert((int)linePointer + 1, CurrentLine.Substring((int)charPointer));
+                CurrentLine = CurrentLine.Remove((int)charPointer);
+                charPointer = 0;
+            }
+            
+            //lines.Add("");
             linePointer++;
             AlignCursor();
         }
