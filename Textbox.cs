@@ -157,8 +157,27 @@ internal class Textbox
                 text.FillColor = textbox.FontColor;
                 uint width = (uint)text.GetLocalBounds().Width;
 
-                string test = textbox.CurrentLine;
-                shape.Position = new(width + OffsetX, 0);
+                Text textHeight = new(text);
+
+                uint numberOfLines = (uint)textbox.Lines.Count();
+                textHeight.DisplayedString = "";
+                for (uint i = 0; i < numberOfLines; i++)
+                {
+                    if (i != 0)
+                    {
+                        textHeight.DisplayedString += "\n";
+                    }
+                    textHeight.DisplayedString += "A";
+                }
+
+                Console.WriteLine("");
+                Console.WriteLine(textHeight.DisplayedString);
+
+                uint height = (uint)textHeight.GetGlobalBounds().Height;
+
+                shape.Origin = new(0, text.CharacterSize * 0.6875f);
+
+                shape.Position = new(width + OffsetX, height);
 
                 target.Draw(shape);
             }
@@ -325,6 +344,12 @@ internal class Textbox
             charPointer = (uint)CurrentLine.Length;
             cursor.ResetBlinking();
         }
+        if (program.IsKeyPressed(Keyboard.Key.Enter))
+        {
+            lines.Add("");
+            linePointer++;
+            AlignCursor();
+        }
 
         foreach (char c in program.TypedText)
         {
@@ -367,7 +392,7 @@ internal class Textbox
 
         foreach (string str in lines)
         {
-            text.DisplayedString += str;
+            text.DisplayedString += str + "\n";
         }
 
         target.Clear(Colors.bg);
