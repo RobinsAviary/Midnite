@@ -222,7 +222,7 @@ internal class Textbox
     private uint charPointer = 0;
     private uint linePointer = 0;
 
-    List<string> Lines
+    public List<string> Lines
     {
         get
         {
@@ -255,15 +255,15 @@ internal class Textbox
         cursor.ResetBlinking();
     }
 
-    public void MoveLeft()
+    public void MoveLeft(uint dist = 1)
     {
-        if (charPointer > 0) charPointer--;
+        if (charPointer > 0) charPointer -= dist;
         cursor.ResetBlinking();
     }
 
-    public void MoveRight()
+    public void MoveRight(uint dist = 1)
     {
-        if (charPointer < CurrentLine.Length) charPointer++;
+        if (charPointer < CurrentLine.Length) charPointer += dist;
         cursor.ResetBlinking();
     }
 
@@ -284,12 +284,47 @@ internal class Textbox
         if (charPointer >= CurrentLine.Length) charPointer = (uint)CurrentLine.Length;
     }
 
+    public void InsertHere(string str)
+    {
+        if (CurrentLine.Length < 1)
+        {
+            CurrentLine = str;
+        }
+        else
+        {
+            CurrentLine = CurrentLine.Insert((int)charPointer, str);
+        }
+
+        MoveRight((uint)str.Length);
+        cursor.ResetBlinking();
+    }
+
     public void Step()
     {
         if (program.IsKeyPressed(Keyboard.Key.Left)) MoveLeft();
         if (program.IsKeyPressed(Keyboard.Key.Right)) MoveRight();
         if (program.IsKeyPressed(Keyboard.Key.Up)) MoveUp();
         if (program.IsKeyPressed(Keyboard.Key.Down)) MoveDown();
+        if (program.IsKeyPressed(Keyboard.Key.Delete))
+        {
+            if (CurrentLine.Length > 0 && charPointer < CurrentLine.Length)
+            {
+                CurrentLine = CurrentLine.Remove((int)charPointer, 1);
+            }
+
+            cursor.ResetBlinking();
+        }
+        if (program.IsKeyPressed(Keyboard.Key.Home))
+        {
+            charPointer = 0;
+            cursor.ResetBlinking();
+        }
+
+        if (program.IsKeyPressed(Keyboard.Key.End))
+        {
+            charPointer = (uint)CurrentLine.Length;
+            cursor.ResetBlinking();
+        }
 
         foreach (char c in program.TypedText)
         {
@@ -307,7 +342,7 @@ internal class Textbox
             }
             else if ((char)c == 22) // Paste
             {
-
+                InsertHere(Clipboard.Contents);
             }
             else if ((char)c == '\b')
             {
@@ -319,15 +354,7 @@ internal class Textbox
             }
             else if ((char)c > 31 || c == '\t')
             {
-                if (CurrentLine.Length < 1)
-                {
-                    CurrentLine = c.ToString();
-                } else
-                {
-                    CurrentLine = CurrentLine.Insert((int)charPointer, c.ToString());
-                }
-
-                MoveRight();
+                InsertHere(c.ToString());
             }
         }
 
