@@ -8,6 +8,9 @@ class SaverToy
 {
     internal class Program
     {
+        static public string version = "Alpha";
+        static public char commandFlag = '-';
+
         WindowEvent events = new();
 
         public bool IsKeyPressed(Keyboard.Key key)
@@ -68,6 +71,43 @@ class SaverToy
     {
         Program program = new();
 
-        program.Run();
+        bool runProgram = true;
+
+        if (args.Length > 0)
+        {
+            string commandFlagTwice = Program.commandFlag.ToString() + Program.commandFlag.ToString();
+
+            foreach (string arg in args)
+            {
+                if (arg.StartsWith(Program.commandFlag + "h") || arg.StartsWith(Program.commandFlag + "?") || arg.StartsWith(commandFlagTwice + "help"))
+                {
+                    runProgram = false;
+                    string helpText = "Usage: SaverToy [FLAGS]" +
+                        "\n\nOptions:" +
+                        "\n-v, --version  Get the current version of SaverToy." +
+                        "\n-a, --author   Get info on the author of SaverToy." +
+                        "\n-h, -?, --help Displays this help message.";
+                    Console.WriteLine(helpText);
+                }
+                else if (arg.StartsWith(Program.commandFlag + "v") || arg.StartsWith(commandFlagTwice + "version"))
+                {
+                    runProgram = false;
+                    Console.WriteLine($"SaverToy v{Program.version}");
+                }
+                else if (arg.StartsWith(commandFlagTwice + "author"))
+                {
+                    runProgram = false;
+                    Console.WriteLine("Written by Robin <3");
+                    Console.WriteLine("robinsaviary.com");
+                } else
+                {
+                    Console.WriteLine($"Unknown flag: {arg}");
+                    Console.WriteLine("Use -h, -?, or --help to view help for SaverToy.");
+                    runProgram = false;
+                }
+            }
+        }
+
+        if (runProgram) program.Run();
     }
 }
