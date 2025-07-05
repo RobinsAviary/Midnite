@@ -31,10 +31,20 @@ class SaverToy
                     }
 
                     VideoMode videoMode = VideoMode.DesktopMode;
+
+                    Window.Close();
+                    if (Window != null)
+                    {
+                        
+                    }
                     Window = new(new(videoMode.Width, videoMode.Height), $"SaverToy v{Program.Version}", Styles.None);
                 }
                 else if (value == false)
                 {
+                    if (Window != null)
+                    {
+                        Window.Close();
+                    }
                     Window = new(new(600, 400), $"SaverToy v{Program.Version}");
                 }
 
@@ -284,6 +294,12 @@ class SaverToy
                 if (Keyboard.IsKeyPressed(Keyboard.Key.Escape) || Keyboard.IsKeyPressed(Keyboard.Key.Space))
                 {
                     Window.Close();
+                }
+
+                if (IsKeyPressed(Keyboard.Key.F11))
+                {
+                    Console.WriteLine("Test");
+                    Fullscreen = !Fullscreen;
                 }
 
                 Window.Clear(Color.Black);
