@@ -92,6 +92,7 @@ class SaverToy
         static public char flagPrefix = '-';
         static public char winFlagPrefix = '/';
         public bool Verbose = false;
+        public bool WinScreen = false;
         public Script scr = new();
         RenderWindow? Window;
         RenderTarget? Target;
@@ -256,7 +257,8 @@ class SaverToy
                 else if (arg == Program.winFlagPrefix + "s")
                 {
                     // Windows is attempting to launch this application as a fullscreen screensaver.
-                    
+                    program.State = Program.States.Screensaver;
+                    program.WinScreen = true;
                 }
                 else if (arg == Program.winFlagPrefix + "c")
                 {
@@ -265,6 +267,11 @@ class SaverToy
                 else if (arg == Program.winFlagPrefix + "p")
                 {
                     // Windows wants us to display a preview of our screensaver on the provided handle.
+                    runProgram = false;
+                }
+                else if (arg == Program.winFlagPrefix + "d")
+                {
+                    // Windows is opening this program as debug in Visual Studio.
                 }
                 else if (arg.StartsWith('-'))
                 {
