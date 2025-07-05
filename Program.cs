@@ -89,7 +89,8 @@ class SaverToy
         public CLIFunctions CLI = new();
 
         static public string Version = "Alpha";
-        static public char commandFlag = '-';
+        static public char flagPrefix = '-';
+        static public char winFlagPrefix = '/';
         public bool Verbose = false;
         public Script scr = new();
         RenderWindow? Window;
@@ -229,28 +230,41 @@ class SaverToy
 
         if (args.Length > 0)
         {
-            string commandFlagTwice = Program.commandFlag.ToString() + Program.commandFlag.ToString();
+            string commandFlagTwice = Program.flagPrefix.ToString() + Program.flagPrefix.ToString();
 
             foreach (string arg in args)
             {
-                if (arg == Program.commandFlag + "h" || arg == Program.commandFlag + "?" || arg == commandFlagTwice + "help")
+                if (arg == Program.flagPrefix + "h" || arg == Program.flagPrefix + "?" || arg == commandFlagTwice + "help")
                 {
                     runProgram = false;
                     program.CLI.PrintHelp();
                 }
-                else if (arg == Program.commandFlag + "V" || arg == commandFlagTwice + "version")
+                else if (arg == Program.flagPrefix + "V" || arg == commandFlagTwice + "version")
                 {
                     runProgram = false;
                     program.CLI.PrintVersion();
                 }
-                else if (arg == Program.commandFlag + "a" || arg == commandFlagTwice + "author")
+                else if (arg == Program.flagPrefix + "a" || arg == commandFlagTwice + "author")
                 {
                     runProgram = false;
                     program.CLI.PrintAuthor();
                 }
-                else if (arg == Program.commandFlag + "v" || arg == commandFlagTwice + "verbose")
+                else if (arg == Program.flagPrefix + "v" || arg == commandFlagTwice + "verbose")
                 {
                     program.ToggleVerbose();
+                }
+                else if (arg == Program.winFlagPrefix + "s")
+                {
+                    // Windows is attempting to launch this application as a fullscreen screensaver.
+                    
+                }
+                else if (arg == Program.winFlagPrefix + "c")
+                {
+                    // Windows is attempting to launch this application's configs.
+                }
+                else if (arg == Program.winFlagPrefix + "p")
+                {
+                    // Windows wants us to display a preview of our screensaver on the provided handle.
                 }
                 else if (arg.StartsWith('-'))
                 {
