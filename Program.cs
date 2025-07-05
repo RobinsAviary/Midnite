@@ -23,22 +23,33 @@ class SaverToy
             {
                 Table t = T.Table;
 
-                if (t != null)
+                DynValue defaultVal = DynValue.NewNumber(0);
+
+                DynValue r = t.Get("r");
+                if (r.Type == DataType.Nil)
                 {
-                    object r = t["r"];
-                    object g = t["g"];
-                    object b = t["b"];
-                    object a = t["a"];
+                    r = defaultVal;
+                }
+                DynValue g = t.Get("g");
+                if (g.Type == DataType.Nil)
+                {
+                    g = defaultVal;
+                }
+                DynValue b = t.Get("b");
+                if (b.Type == DataType.Nil)
+                {
+                    b = defaultVal;
+                }
+                DynValue a = t.Get("a");
 
-                    if (r != null && g != null && b != null)
+                if (r.Type == DataType.Number && g.Type == DataType.Number && b.Type == DataType.Number)
+                {
+                    if (a.Type != DataType.Number)
                     {
-                        if (a == null)
-                        {
-                            a = DynValue.NewNumber(0);
-                        }
-
-                        return new((byte)((DynValue)r).Number, (byte)((DynValue)g).Number, (byte)((DynValue)b).Number, (byte)((DynValue)a).Number);
+                        a = DynValue.NewNumber(255);
                     }
+
+                    return new((byte)r.Number, (byte)g.Number, (byte)b.Number, (byte)a.Number);
                 }
             }
 
@@ -99,23 +110,9 @@ class SaverToy
 
         void ClearScreen(DynValue color)
         {
-            Table t = color.Table;
-            if (t != null)
-            {
-                DynValue r = t.Get("r");
-                DynValue g = t.Get("g");
-                DynValue b = t.Get("b");
-                DynValue a = t.Get("a");
+            Color _color = DynValueToColor(color);
 
-                // If we have all the values we need
-                if (r != null && g != null && b != null && a != null)
-                {
-                    if (Target != null)
-                    {
-                        Target.Clear(new(((byte)r.Number), ((byte)g.Number), ((byte)b.Number), ((byte)a.Number)));
-                    }
-                }
-            }
+            Target.Clear(_color);
         }
 
         public enum States
@@ -145,7 +142,8 @@ class SaverToy
                         // Define in-built functions
                         scr.Globals["Line"] = (Action<DynValue,DynValue,DynValue>)Line;
                         scr.Globals["ClearScreen"] = (Action<DynValue>)ClearScreen;
-                        scr.DoFile("main.lua");
+                        scr.DoFile("screens//testscreen//main.lua");
+                        scr.Call(scr.Globals["init"]);
                         break;
 
                     case States.TextEditor:
