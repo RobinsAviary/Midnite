@@ -1,5 +1,4 @@
-﻿using MoonSharp.Interpreter.Interop.LuaStateInterop;
-using SFML.Graphics;
+﻿using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 using static SaverToy;

@@ -1,15 +1,52 @@
-﻿using SFML.Graphics;
-using SFML.System;
+﻿using MoonSharp.Interpreter;
+using SFML.Graphics;
 using SFML.Window;
-using System.Text;
-using System.Text.Encodings.Web;
 
 class SaverToy
 {
     internal class Program
     {
-        static public string version = "Alpha";
+        static public string Version = "Alpha";
         static public char commandFlag = '-';
+        public bool Verbose = false;
+        RenderWindow? Window;
+
+        public enum States
+        {
+            TextEditor,
+            Screensaver,
+        }
+
+        private States _state = States.TextEditor;
+
+        public States State
+        {
+            get
+            {
+                return _state;
+            }
+            set
+            {
+                switch(value)
+                {
+                    case States.Screensaver:
+                        Script scr = new Script(); // Create script
+                        scr.Options.DebugPrint = s => { Console.WriteLine(s); }; // Set up debug
+                        // Include custom libraries
+                        //scr.DoFile(libraryDir + "rc10.lua");
+
+                        // Define in-built functions
+                        scr.Globals["Line"] = (Action<int>)Horizontal;
+                        break;
+
+                    case States.TextEditor:
+
+                        break;
+                }
+
+                _state = value;
+            }
+        }
 
         WindowEvent events = new();
 
@@ -35,7 +72,7 @@ class SaverToy
         {
             Textbox file = new(this);
 
-            RenderWindow window = new(new(600, 400), "SaverToy");
+            RenderWindow window = new(new(600, 400), $"SaverToy v{Program.Version}");
             window.Closed += events.Closed;
             window.KeyPressed += events.KeyPressed;
             window.KeyReleased += events.KeyReleased;
@@ -56,10 +93,18 @@ class SaverToy
             while (window.IsOpen)
             {
                 window.DispatchEvents();
+                window.Clear(Color.Black);
+                switch (State)
+                {
+                    case States.TextEditor:
+                        file.Step();
+                        file.Draw(window);
+                    break;
 
-                file.Step();
-                file.Draw(window);
+                    case States.Screensaver:
 
+                    break;
+                }
                 events.ClearKeys();
                 events.ClearTypedText();
                 window.Display();
@@ -70,6 +115,7 @@ class SaverToy
     static void Main(string[] args)
     {
         Program program = new();
+        program.State = Program.States.Screensaver;
 
         bool runProgram = true;
 
@@ -79,27 +125,33 @@ class SaverToy
 
             foreach (string arg in args)
             {
-                if (arg.StartsWith(Program.commandFlag + "h") || arg.StartsWith(Program.commandFlag + "?") || arg.StartsWith(commandFlagTwice + "help"))
+                if (arg == Program.commandFlag + "h" || arg == Program.commandFlag + "?" || arg == commandFlagTwice + "help")
                 {
                     runProgram = false;
-                    string helpText = "Usage: SaverToy [FLAGS]" +
+                    string helpText = "Usage: SaverToy [FLAGS...]" +
                         "\n\nOptions:" +
-                        "\n-v, --version  Get the current version of SaverToy." +
+                        "\n-V, --version  Get the current version of SaverToy." +
                         "\n-a, --author   Get info on the author of SaverToy." +
-                        "\n-h, -?, --help Displays this help message.";
+                        "\n-h, -?, --help Displays this help message." +
+                        "\n-v, --verbose  Print verbose debug text.";
                     Console.WriteLine(helpText);
                 }
-                else if (arg.StartsWith(Program.commandFlag + "v") || arg.StartsWith(commandFlagTwice + "version"))
+                else if (arg == Program.commandFlag + "V" || arg == commandFlagTwice + "version")
                 {
                     runProgram = false;
-                    Console.WriteLine($"SaverToy v{Program.version}");
+                    Console.WriteLine($"SaverToy v{Program.Version}");
                 }
-                else if (arg.StartsWith(commandFlagTwice + "author"))
+                else if (arg == Program.commandFlag + "a" || arg == commandFlagTwice + "author")
                 {
                     runProgram = false;
                     Console.WriteLine("Written by Robin <3");
                     Console.WriteLine("robinsaviary.com");
-                } else
+                }
+                else if (arg == Program.commandFlag + "v" || arg == commandFlagTwice + "verbose")
+                {
+                    program.Verbose = true;
+                }
+                else if (arg.StartsWith('-'))
                 {
                     Console.WriteLine($"Unknown flag: {arg}");
                     Console.WriteLine("Use -h, -?, or --help to view help for SaverToy.");
