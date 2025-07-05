@@ -1,7 +1,6 @@
 ﻿using MoonSharp.Interpreter;
 using SFML.Graphics;
 using SFML.Window;
-using static SaverToy;
 
 class SaverToy
 {
@@ -12,9 +11,38 @@ class SaverToy
             if (value)
             {
                 return trueyText;
-            } else
+            }
+            else
 
-            return falseyText;
+                return falseyText;
+        }
+
+        public Color DynValueToColor(DynValue T)
+        {
+            if (T.Type == DataType.Table)
+            {
+                Table t = T.Table;
+
+                if (t != null)
+                {
+                    object r = t["r"];
+                    object g = t["g"];
+                    object b = t["b"];
+                    object a = t["a"];
+
+                    if (r != null && g != null && b != null)
+                    {
+                        if (a == null)
+                        {
+                            a = DynValue.NewNumber(0);
+                        }
+
+                        return new((byte)((DynValue)r).Number, (byte)((DynValue)g).Number, (byte)((DynValue)b).Number, (byte)((DynValue)a).Number);
+                    }
+                }
+            }
+
+            return Color.Transparent;
         }
 
         public void ToggleVerbose()
