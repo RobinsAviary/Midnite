@@ -17,6 +17,49 @@ class SaverToy
                 return falseyText;
         }
 
+        internal class Directories
+        {
+            public string Resources = "resources//";
+            public string User
+            {
+                get
+                {
+                    return Resources + "user//";
+                }
+            }
+
+            public string Fonts
+            {
+                get
+                {
+                    return Resources + "fonts//";
+                }
+            }
+            public string Screens
+            {
+                get
+                {
+                    return User + "screens//";
+                }
+            }
+
+            private string project = "testscreen//";
+
+            public string Project
+            {
+                get
+                {
+                    return Screens + project;
+                }
+                set
+                {
+                    project = value;
+                }
+            }
+        }
+
+        public Directories directories = new();
+
         public Color DynValueToColor(DynValue T)
         {
             if (T.Type == DataType.Table)
@@ -144,8 +187,9 @@ class SaverToy
                         // Define in-built functions
                         scr.Globals["Line"] = (Action<DynValue,DynValue,DynValue>)Line;
                         scr.Globals["ClearScreen"] = (Action<DynValue>)ClearScreen;
-                        scr.DoFile("screens//testscreen//main.lua");
-                        scr.Call(scr.Globals["init"]);
+                        scr.DoFile(directories.Project + "main.lua");
+                        object init = scr.Globals["init"];
+                        if (init != null) scr.Call(init);
                         break;
 
                     case States.TextEditor:
@@ -181,7 +225,15 @@ class SaverToy
         {
             Textbox file = new(this);
 
-            Window = new(new(600, 400), $"SaverToy v{Program.Version}");
+            Styles windowStyle = Styles.Default;
+
+            if (WinScreen)
+            {
+                windowStyle = Styles.None;
+            }
+
+            Window = new(new(600, 400), $"SaverToy v{Program.Version}", windowStyle);
+
             Target = Window;
             Window.Closed += events.Closed;
             Window.KeyPressed += events.KeyPressed;
@@ -203,6 +255,12 @@ class SaverToy
             while (Window.IsOpen)
             {
                 Window.DispatchEvents();
+
+                if (IsKeyPressed(Keyboard.Key.Escape) || (WinScreen && IsKeyPressed(Keyboard.Key.Space)))
+                {
+                    Window.Close();
+                }
+
                 Window.Clear(Color.Black);
                 switch (State)
                 {
@@ -212,7 +270,8 @@ class SaverToy
                     break;
 
                     case States.Screensaver:
-                        scr.Call(scr.Globals["update"]);
+                        object update = scr.Globals["update"];
+                        if (update != null) scr.Call(update);
                         break;
                 }
                 events.ClearKeys();
