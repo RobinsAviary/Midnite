@@ -52,6 +52,7 @@ class SaverToy
         static public string Version = "Alpha";
         static public char commandFlag = '-';
         public bool Verbose = false;
+        public Script scr = new();
         RenderWindow? Window;
         RenderTarget? Target;
 
@@ -65,6 +66,27 @@ class SaverToy
                 Console.WriteLine($"{x}");
 
                 //if ()
+            }
+        }
+
+        void ClearScreen(DynValue color)
+        {
+            Table t = color.Table;
+            if (t != null)
+            {
+                DynValue r = t.Get("r");
+                DynValue g = t.Get("g");
+                DynValue b = t.Get("b");
+                DynValue a = t.Get("a");
+
+                // If we have all the values we need
+                if (r != null && g != null && b != null && a != null)
+                {
+                    if (Target != null)
+                    {
+                        Target.Clear(new(((byte)r.Number), ((byte)g.Number), ((byte)b.Number), ((byte)a.Number)));
+                    }
+                }
             }
         }
 
@@ -87,17 +109,15 @@ class SaverToy
                 switch(value)
                 {
                     case States.Screensaver:
-                        Script scr = new Script(); // Create script
+                        //Script scr = new Script(); // Create script
                         scr.Options.DebugPrint = s => { Console.WriteLine(s); }; // Set up debug
                         // Include custom libraries
                         //scr.DoFile(libraryDir + "rc10.lua");
 
                         // Define in-built functions
                         scr.Globals["Line"] = (Action<DynValue,DynValue,DynValue>)Line;
-
-
-                        scr.DoString("" +
-                            "Line({x=3,y=1},0,0)");
+                        scr.Globals["ClearScreen"] = (Action<DynValue>)ClearScreen;
+                        scr.DoFile("main.lua");
                         break;
 
                     case States.TextEditor:
@@ -134,6 +154,7 @@ class SaverToy
             Textbox file = new(this);
 
             Window = new(new(600, 400), $"SaverToy v{Program.Version}");
+            Target = Window;
             Window.Closed += events.Closed;
             Window.KeyPressed += events.KeyPressed;
             Window.KeyReleased += events.KeyReleased;
@@ -163,8 +184,8 @@ class SaverToy
                     break;
 
                     case States.Screensaver:
-
-                    break;
+                        scr.Call(scr.Globals["update"]);
+                        break;
                 }
                 events.ClearKeys();
                 events.ClearTypedText();
