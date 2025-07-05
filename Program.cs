@@ -1,15 +1,72 @@
 ﻿using MoonSharp.Interpreter;
 using SFML.Graphics;
 using SFML.Window;
+using static SaverToy;
 
 class SaverToy
 {
     internal class Program
     {
+        public string BoolToString(bool value, string falseyText = "FALSE", string trueyText = "TRUE")
+        {
+            if (value)
+            {
+                return trueyText;
+            } else
+
+            return falseyText;
+        }
+
+        public void ToggleVerbose()
+        {
+            Verbose = !Verbose;
+            Console.WriteLine($"Verbose output {BoolToString(Verbose, "OFF", "ON")}.");
+        }
+
+        internal class CLIFunctions {
+            public void PrintHelp()
+            {
+                string helpText = "Usage: SaverToy [FLAGS...]" +
+                        "\n\nOptions:" +
+                        "\n-V, --version  Get the current version of SaverToy." +
+                        "\n-a, --author   Get info on the author of SaverToy." +
+                        "\n-h, -?, --help Displays this help message." +
+                        "\n-v, --verbose  Print verbose debug text.";
+                Console.WriteLine(helpText);
+            }
+
+            public void PrintAuthor()
+            {
+                Console.WriteLine("Written by Robin <3");
+                Console.WriteLine("robinsaviary.com");
+            }
+
+            public void PrintVersion()
+            {
+                Console.WriteLine($"SaverToy v{Program.Version}");
+            }
+        }
+
+        public CLIFunctions CLI = new();
+
         static public string Version = "Alpha";
         static public char commandFlag = '-';
         public bool Verbose = false;
         RenderWindow? Window;
+        RenderTarget? Target;
+
+        void Line(DynValue startPos, DynValue endPos, DynValue color)
+        {
+            if (startPos.Type == DataType.Table)
+            {
+                Table t = startPos.Table;
+
+                DynValue x = t.Get("x");
+                Console.WriteLine($"{x}");
+
+                //if ()
+            }
+        }
 
         public enum States
         {
@@ -36,7 +93,11 @@ class SaverToy
                         //scr.DoFile(libraryDir + "rc10.lua");
 
                         // Define in-built functions
-                        scr.Globals["Line"] = (Action<int>)Horizontal;
+                        scr.Globals["Line"] = (Action<DynValue,DynValue,DynValue>)Line;
+
+
+                        scr.DoString("" +
+                            "Line({x=3,y=1},0,0)");
                         break;
 
                     case States.TextEditor:
@@ -72,33 +133,33 @@ class SaverToy
         {
             Textbox file = new(this);
 
-            RenderWindow window = new(new(600, 400), $"SaverToy v{Program.Version}");
-            window.Closed += events.Closed;
-            window.KeyPressed += events.KeyPressed;
-            window.KeyReleased += events.KeyReleased;
-            window.Resized += events.Resized;
-            window.TextEntered += events.TextEntered;
-            window.GainedFocus += events.FocusGained;
-            window.LostFocus += events.FocusLost;
-            window.MouseLeft += events.MouseLeft;
-            window.MouseEntered += events.MouseEntered;
-            window.MouseButtonPressed += events.MouseButtonPressed;
-            window.MouseButtonReleased += events.MouseButtonReleased;
+            Window = new(new(600, 400), $"SaverToy v{Program.Version}");
+            Window.Closed += events.Closed;
+            Window.KeyPressed += events.KeyPressed;
+            Window.KeyReleased += events.KeyReleased;
+            Window.Resized += events.Resized;
+            Window.TextEntered += events.TextEntered;
+            Window.GainedFocus += events.FocusGained;
+            Window.LostFocus += events.FocusLost;
+            Window.MouseLeft += events.MouseLeft;
+            Window.MouseEntered += events.MouseEntered;
+            Window.MouseButtonPressed += events.MouseButtonPressed;
+            Window.MouseButtonReleased += events.MouseButtonReleased;
 
             Font font = new("resources/fonts/JetBrainsMono-Regular.ttf");
             font.SetSmooth(true);
 
             file.Font = font;
 
-            while (window.IsOpen)
+            while (Window.IsOpen)
             {
-                window.DispatchEvents();
-                window.Clear(Color.Black);
+                Window.DispatchEvents();
+                Window.Clear(Color.Black);
                 switch (State)
                 {
                     case States.TextEditor:
                         file.Step();
-                        file.Draw(window);
+                        file.Draw(Window);
                     break;
 
                     case States.Screensaver:
@@ -107,7 +168,7 @@ class SaverToy
                 }
                 events.ClearKeys();
                 events.ClearTypedText();
-                window.Display();
+                Window.Display();
             }
         }
     }
@@ -128,28 +189,21 @@ class SaverToy
                 if (arg == Program.commandFlag + "h" || arg == Program.commandFlag + "?" || arg == commandFlagTwice + "help")
                 {
                     runProgram = false;
-                    string helpText = "Usage: SaverToy [FLAGS...]" +
-                        "\n\nOptions:" +
-                        "\n-V, --version  Get the current version of SaverToy." +
-                        "\n-a, --author   Get info on the author of SaverToy." +
-                        "\n-h, -?, --help Displays this help message." +
-                        "\n-v, --verbose  Print verbose debug text.";
-                    Console.WriteLine(helpText);
+                    program.CLI.PrintHelp();
                 }
                 else if (arg == Program.commandFlag + "V" || arg == commandFlagTwice + "version")
                 {
                     runProgram = false;
-                    Console.WriteLine($"SaverToy v{Program.Version}");
+                    program.CLI.PrintVersion();
                 }
                 else if (arg == Program.commandFlag + "a" || arg == commandFlagTwice + "author")
                 {
                     runProgram = false;
-                    Console.WriteLine("Written by Robin <3");
-                    Console.WriteLine("robinsaviary.com");
+                    program.CLI.PrintAuthor();
                 }
                 else if (arg == Program.commandFlag + "v" || arg == commandFlagTwice + "verbose")
                 {
-                    program.Verbose = true;
+                    program.ToggleVerbose();
                 }
                 else if (arg.StartsWith('-'))
                 {
