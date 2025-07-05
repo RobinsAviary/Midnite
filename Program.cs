@@ -1,89 +1,11 @@
 ﻿using MoonSharp.Interpreter;
 using SFML.Graphics;
 using SFML.Window;
-using MonitorDetails;
-using MonitorDetails.Models;
 
 class SaverToy
 {
     internal class Program
     {
-        private bool fullscreen = false;
-
-        public bool Fullscreen
-        {
-            get
-            {
-                return fullscreen;
-            }
-            set
-            {
-                if (value == true)
-                {
-                    Reader reader = new();
-
-                    IEnumerable<MonitorDetails.Models.Monitor> monitors = reader.GetMonitorDetails();
-
-                    // Get info on monitors
-                    foreach (MonitorDetails.Models.Monitor monitor in monitors)
-                    {
-                        Console.WriteLine(monitor.MonitorCoordinates.Y);
-                    }
-
-                    VideoMode videoMode = VideoMode.DesktopMode;
-                    Window = new(new(videoMode.Width, videoMode.Height), $"SaverToy v{Program.Version}", Styles.None);
-                }
-                else if (value == false)
-                {
-                    Window = new(new(600, 400), $"SaverToy v{Program.Version}");
-                }
-
-                fullscreen = value;
-            }
-        }
-
-        internal class Directories
-        {
-            public string Resources = "resources//";
-            public string User {
-                get
-                {
-                    return Resources + "user//";
-                }
-            }
-
-            public string Fonts
-            {
-                get
-                {
-                    return Resources + "fonts//";
-                }
-            }
-            public string Screens
-            {
-                get
-                {
-                    return User + "screens//";
-                }
-            }
-
-            private string project = "testscreen//";
-
-            public string Project
-            {
-                get
-                {
-                    return Screens + project;
-                }
-                set
-                {
-                    project = value;
-                }
-            }
-        }
-
-        public Directories directories = new();
-
         public string BoolToString(bool value, string falseyText = "FALSE", string trueyText = "TRUE")
         {
             if (value)
@@ -222,7 +144,7 @@ class SaverToy
                         // Define in-built functions
                         scr.Globals["Line"] = (Action<DynValue,DynValue,DynValue>)Line;
                         scr.Globals["ClearScreen"] = (Action<DynValue>)ClearScreen;
-                        scr.DoFile(directories.Project + "main.lua");
+                        scr.DoFile("screens//testscreen//main.lua");
                         scr.Call(scr.Globals["init"]);
                         break;
 
@@ -259,6 +181,7 @@ class SaverToy
         {
             Textbox file = new(this);
 
+            Window = new(new(600, 400), $"SaverToy v{Program.Version}");
             Target = Window;
             Window.Closed += events.Closed;
             Window.KeyPressed += events.KeyPressed;
@@ -272,7 +195,7 @@ class SaverToy
             Window.MouseButtonPressed += events.MouseButtonPressed;
             Window.MouseButtonReleased += events.MouseButtonReleased;
 
-            Font font = new(directories.Fonts + "JetBrainsMono-Regular.ttf");
+            Font font = new("resources/fonts/JetBrainsMono-Regular.ttf");
             font.SetSmooth(true);
 
             file.Font = font;
@@ -280,12 +203,6 @@ class SaverToy
             while (Window.IsOpen)
             {
                 Window.DispatchEvents();
-
-                if (Keyboard.IsKeyPressed(Keyboard.Key.Escape) || Keyboard.IsKeyPressed(Keyboard.Key.Space))
-                {
-                    Window.Close();
-                }
-
                 Window.Clear(Color.Black);
                 switch (State)
                 {
@@ -311,7 +228,6 @@ class SaverToy
         program.State = Program.States.Screensaver;
 
         bool runProgram = true;
-        bool launchWindowed = true;
 
         if (args.Length > 0)
         {
@@ -343,7 +259,6 @@ class SaverToy
                     // Windows is attempting to launch this application as a fullscreen screensaver.
                     program.State = Program.States.Screensaver;
                     program.WinScreen = true;
-                    launchWindowed = false;
                 }
                 else if (arg == Program.winFlagPrefix + "c")
                 {
@@ -367,10 +282,6 @@ class SaverToy
             }
         }
 
-        if (runProgram)
-        {
-            program.Fullscreen = !launchWindowed;
-            program.Run();
-        }
+        if (runProgram) program.Run();
     }
 }
