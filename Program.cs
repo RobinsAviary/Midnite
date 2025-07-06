@@ -7,6 +7,8 @@ class SaverToy
 {
     internal class Program
     {
+        Clock timer = new();
+
         public string BoolToString(bool value, string falseyText = "FALSE", string trueyText = "TRUE")
         {
             if (value)
@@ -304,6 +306,26 @@ class SaverToy
             return true;
         }
 
+        void RelaunchWindow()
+        {
+            RemakeWindow();
+        }
+
+        void Exit()
+        {
+            Window.Close();
+        }
+
+        double Time()
+        {
+            return timer.ElapsedTime.AsSeconds();
+        }
+
+        double T()
+        {
+            return Time();
+        }
+
         public enum States
         {
             TextEditor,
@@ -341,18 +363,37 @@ class SaverToy
                             scr.Globals["GetWindowHeight"] = (Func<DynValue>)GetWindowHeight;
                             scr.Globals["GetCursorPosition"] = (Func<Table>)GetCursorPosition;
                             scr.Globals["IsCursorOnscreen"] = (Func<bool>)IsCursorOnscreen;
-                            scr.DoFile(directories.Project + "main.lua");
-                            object init = scr.Globals["Init"];
-                            if (init != null) 
+                            scr.Globals["RelaunchWindow"] = (Action)RelaunchWindow;
+                            scr.Globals["GetAntialiasingLevel"] = (Func<DynValue>)GetAntialiasingLevel;
+                            scr.Globals["SetAntialiasingLevel"] = (Action<DynValue>)SetAntialiasingLevel;
+                            scr.Globals["Exit"] = (Action)Exit;
+                            scr.Globals["Time"] = (Func<double>)Time;
+                            scr.Globals["T"] = (Func<double>)T;
+                            try
                             {
-                                scr.Call(init); 
-                            } else if (Verbose) {
-                                Console.WriteLine("WARNING: No 'init()' function found. Skipping...");
-                            }
+                                scr.DoFile(directories.Resources + "scripts//libs//Vec2.lua");
+                                scr.DoFile(directories.Project + "main.lua");
 
-                            if (scr.Globals["Update"] == null)
+                                object init = scr.Globals["Init"];
+                                if (init != null)
+                                {
+                                    scr.Call(init);
+                                }
+                                else if (Verbose)
+                                {
+                                    Console.WriteLine("WARNING: No 'init()' function found. Skipping...");
+                                }
+
+                                if (scr.Globals["Update"] == null)
+                                {
+                                    Console.WriteLine("WARNING: Your project is missing the typical 'Update()' entry point.");
+                                }
+
+                                timer.Restart();
+                            }
+                            catch(MoonSharp.Interpreter.InterpreterException e)
                             {
-                                Console.WriteLine("WARNING: Your project is missing the typical 'Update()' entry point.");
+                                Console.WriteLine(e.DecoratedMessage);
                             }
 
                             break;
@@ -422,6 +463,17 @@ class SaverToy
             Window.MouseEntered += events.MouseEntered;
             Window.MouseButtonPressed += events.MouseButtonPressed;
             Window.MouseButtonReleased += events.MouseButtonReleased;
+        }
+
+        public void SetAntialiasingLevel(DynValue level)
+        {
+            float _level = DynValueToFloat(level);
+            Antialiasing = (uint)_level;
+        }
+
+        public DynValue GetAntialiasingLevel()
+        {
+            return DynValue.NewNumber(Antialiasing);
         }
 
         public void Run()
