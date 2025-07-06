@@ -189,6 +189,19 @@ class SaverToy
             Target.Draw(array);
         }
 
+        void DrawRectangle(DynValue position, DynValue size, DynValue color)
+        {
+            Vector2f _position = DynValueToVector2f(position);
+            Vector2f _size = DynValueToVector2f(size);
+            Color _color = DynValueToColor(color);
+
+            RectangleShape shape = new(_size);
+            shape.Position = _position;
+            shape.FillColor = _color;
+
+            Target.Draw(shape);
+        }
+
         public enum States
         {
             TextEditor,
@@ -216,7 +229,8 @@ class SaverToy
                                                                                      //scr.DoFile(libraryDir + "rc10.lua");
 
                             // Define in-built functions
-                            scr.Globals["Line"] = (Action<DynValue, DynValue, DynValue>)DrawLine;
+                            scr.Globals["DrawRectangle"] = (Action<DynValue, DynValue, DynValue>)DrawRectangle;
+                            scr.Globals["DrawLine"] = (Action<DynValue, DynValue, DynValue>)DrawLine;
                             scr.Globals["ClearScreen"] = (Action<DynValue>)ClearScreen;
                             scr.DoFile(directories.Project + "main.lua");
                             object init = scr.Globals["init"];
@@ -224,7 +238,7 @@ class SaverToy
                             {
                                 scr.Call(init); 
                             } else if (Verbose) {
-                                Console.WriteLine("No 'init()' function found. Skipping...");
+                                Console.WriteLine("WARNING: No 'init()' function found. Skipping...");
                             }
 
                             if (scr.Globals["update"] == null)
