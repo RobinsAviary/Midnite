@@ -236,10 +236,11 @@ class SaverToy
         {
             Vector2f _position = DynValueToVector2f(position);
             float _radius = DynValueToFloat(radius);
+            Vector2f _offset = new(_radius, _radius);
             Color _color = DynValueToColor(color);
 
             CircleShape shape = new();
-            shape.Position = _position;
+            shape.Position = _position - _offset;
             shape.Radius = _radius;
             shape.FillColor = _color;
 
@@ -270,6 +271,37 @@ class SaverToy
             Vector2u windowSize = Window.Size;
 
             return DynValue.NewNumber(windowSize.Y);
+        }
+
+        Table GetCursorPosition()
+        {
+            Vector2i mousePosition = Mouse.GetPosition(Window);
+
+            Table t = new(scr);
+
+            t.Set("x", DynValue.NewNumber(mousePosition.X));
+            t.Set("y", DynValue.NewNumber(mousePosition.Y));
+
+            return t;
+        }
+
+        bool IsCursorOnscreen()
+        {
+            Vector2i _position = Mouse.GetPosition(Window);
+
+            if (_position.X < 0 || _position.Y < 0)
+            {
+                return false;
+            }
+
+            Vector2u _size = Window.Size;
+
+            if (_position.X > _size.X || _position.Y > _size.Y)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public enum States
@@ -307,6 +339,8 @@ class SaverToy
                             scr.Globals["GetWindowSize"] = (Func<Table>)GetWindowSize;
                             scr.Globals["GetWindowWidth"] = (Func<DynValue>)GetWindowWidth;
                             scr.Globals["GetWindowHeight"] = (Func<DynValue>)GetWindowHeight;
+                            scr.Globals["GetCursorPosition"] = (Func<Table>)GetCursorPosition;
+                            scr.Globals["IsCursorOnscreen"] = (Func<bool>)IsCursorOnscreen;
                             scr.DoFile(directories.Project + "main.lua");
                             object init = scr.Globals["Init"];
                             if (init != null) 
