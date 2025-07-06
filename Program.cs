@@ -97,7 +97,7 @@ class SaverToy
                 }
             }
 
-            return Color.Transparent;
+            return Color.Black;
         }
 
         public Vector2f DynValueToVector2f(DynValue T)
@@ -160,28 +160,33 @@ class SaverToy
         static public char winFlagPrefix = '/';
         public bool Verbose = false;
         public bool WinScreen = false;
+        public bool Fullscreen = false;
+        public uint Antialiasing = 0;
         public Script scr = new();
         RenderWindow? Window;
         RenderTarget? Target;
-
-        void Line(DynValue startPos, DynValue endPos, DynValue color)
-        {
-            if (startPos.Type == DataType.Table)
-            {
-                Table t = startPos.Table;
-
-                DynValue x = t.Get("x");
-                Console.WriteLine($"{x}");
-
-                //if ()
-            }
-        }
 
         void ClearScreen(DynValue color)
         {
             Color _color = DynValueToColor(color);
 
             Target.Clear(_color);
+        }
+
+        void DrawLine(DynValue pos1, DynValue pos2, DynValue color)
+        {
+            VertexArray array = new VertexArray();
+            array.PrimitiveType = PrimitiveType.Lines;
+            Vertex v1 = new Vertex();
+            Vertex v2 = new Vertex();
+            v1.Position = DynValueToVector2f(pos1);
+            v2.Position = DynValueToVector2f(pos2);
+            Color _color = DynValueToColor(color);
+            v1.Color = _color;
+            v2.Color = _color;
+            array.Append(v1);
+            array.Append(v2);
+            Target.Draw(array);
         }
 
         public enum States
@@ -211,11 +216,22 @@ class SaverToy
                                                                                      //scr.DoFile(libraryDir + "rc10.lua");
 
                             // Define in-built functions
-                            scr.Globals["Line"] = (Action<DynValue, DynValue, DynValue>)Line;
+                            scr.Globals["Line"] = (Action<DynValue, DynValue, DynValue>)DrawLine;
                             scr.Globals["ClearScreen"] = (Action<DynValue>)ClearScreen;
                             scr.DoFile(directories.Project + "main.lua");
                             object init = scr.Globals["init"];
-                            if (init != null) scr.Call(init);
+                            if (init != null) 
+                            {
+                                scr.Call(init); 
+                            } else if (Verbose) {
+                                Console.WriteLine("No 'init()' function found. Skipping...");
+                            }
+
+                            if (scr.Globals["update"] == null)
+                            {
+                                Console.WriteLine("WARNING: Your project is missing the typical 'update()' entry point.");
+                            }
+
                             break;
 
                         case States.TextEditor:
@@ -248,20 +264,30 @@ class SaverToy
             }
         }
 
-        public void Run()
+        public void RemakeWindow()
         {
-            Textbox file = new(this);
-
             Styles windowStyle = Styles.Default;
 
-            if (WinScreen)
+            VideoMode videoMode = VideoMode.FullscreenModes.Last();
+
+            if (Fullscreen)
             {
                 windowStyle = Styles.None;
+                videoMode = VideoMode.DesktopMode;
             }
 
-            Window = new(new(600, 400), $"SaverToy v{Program.Version}", windowStyle);
+            ContextSettings settings = new();
+            settings.AntialiasingLevel = Antialiasing;
 
+            // Since the size of SaverToy is dynamic, we'll simply initialize the window size to something sensible by
+            // getting the smallest resolution for a fullscreen window that the OS considers reasonable.
+            if (Window != null)
+            {
+                Window.Close();
+            }
+            Window = new(videoMode, $"SaverToy v{Program.Version}", windowStyle, settings);
             Target = Window;
+
             Window.Closed += events.Closed;
             Window.KeyPressed += events.KeyPressed;
             Window.KeyReleased += events.KeyReleased;
@@ -273,6 +299,13 @@ class SaverToy
             Window.MouseEntered += events.MouseEntered;
             Window.MouseButtonPressed += events.MouseButtonPressed;
             Window.MouseButtonReleased += events.MouseButtonReleased;
+        }
+
+        public void Run()
+        {
+            Textbox file = new(this);
+
+            RemakeWindow();
 
             Font font = new("resources/fonts/JetBrainsMono-Regular.ttf");
             font.SetSmooth(true);
@@ -286,6 +319,12 @@ class SaverToy
                 if (IsKeyPressed(Keyboard.Key.Escape) || (WinScreen && IsKeyPressed(Keyboard.Key.Space)))
                 {
                     Window.Close();
+                }
+
+                if (IsKeyPressed(Keyboard.Key.F11))
+                {
+                    Fullscreen = !Fullscreen;
+                    RemakeWindow();
                 }
 
                 Window.Clear(Color.Black);
