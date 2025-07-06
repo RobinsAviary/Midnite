@@ -202,6 +202,30 @@ class SaverToy
             Target.Draw(shape);
         }
 
+        float DynValueToFloat(DynValue number, float defaultValue = 0)
+        {
+            if (number.Type == DataType.Number)
+            {
+                return (float)number.Number;
+            }
+
+            return defaultValue;
+        }
+
+        void DrawCircle(DynValue position, DynValue radius, DynValue color)
+        {
+            Vector2f _position = DynValueToVector2f(position);
+            float _radius = DynValueToFloat(radius);
+            Color _color = DynValueToColor(color);
+
+            CircleShape shape = new();
+            shape.Position = _position;
+            shape.Radius = _radius;
+            shape.FillColor = _color;
+
+            Target.Draw(shape);
+        }
+
         Table GetWindowSize()
         {
             Table t = new(scr);
@@ -256,6 +280,7 @@ class SaverToy
 
                             // Define in-built functions
                             scr.Globals["DrawRectangle"] = (Action<DynValue, DynValue, DynValue>)DrawRectangle;
+                            scr.Globals["DrawCircle"] = (Action<DynValue, DynValue, DynValue>)DrawCircle;
                             scr.Globals["DrawLine"] = (Action<DynValue, DynValue, DynValue>)DrawLine;
                             scr.Globals["ClearScreen"] = (Action<DynValue>)ClearScreen;
                             scr.Globals["GetWindowSize"] = (Func<Table>)GetWindowSize;
