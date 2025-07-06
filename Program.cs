@@ -202,6 +202,32 @@ class SaverToy
             Target.Draw(shape);
         }
 
+        Table GetWindowSize()
+        {
+            Table t = new(scr);
+
+            Vector2u windowSize = Window.Size;
+
+            t.Set("x", DynValue.NewNumber(windowSize.X));
+            t.Set("y", DynValue.NewNumber(windowSize.Y));
+
+            return t;
+        }
+
+        DynValue GetWindowWidth()
+        {
+            Vector2u windowSize = Window.Size;
+
+            return DynValue.NewNumber(windowSize.X);
+        }
+
+        DynValue GetWindowHeight()
+        {
+            Vector2u windowSize = Window.Size;
+
+            return DynValue.NewNumber(windowSize.Y);
+        }
+
         public enum States
         {
             TextEditor,
@@ -232,6 +258,9 @@ class SaverToy
                             scr.Globals["DrawRectangle"] = (Action<DynValue, DynValue, DynValue>)DrawRectangle;
                             scr.Globals["DrawLine"] = (Action<DynValue, DynValue, DynValue>)DrawLine;
                             scr.Globals["ClearScreen"] = (Action<DynValue>)ClearScreen;
+                            scr.Globals["GetWindowSize"] = (Func<Table>)GetWindowSize;
+                            scr.Globals["GetWindowWidth"] = (Func<DynValue>)GetWindowWidth;
+                            scr.Globals["GetWindowHeight"] = (Func<DynValue>)GetWindowHeight;
                             scr.DoFile(directories.Project + "main.lua");
                             object init = scr.Globals["init"];
                             if (init != null) 
