@@ -287,7 +287,7 @@ class SaverToy
                             scr.Globals["GetWindowWidth"] = (Func<DynValue>)GetWindowWidth;
                             scr.Globals["GetWindowHeight"] = (Func<DynValue>)GetWindowHeight;
                             scr.DoFile(directories.Project + "main.lua");
-                            object init = scr.Globals["init"];
+                            object init = scr.Globals["Init"];
                             if (init != null) 
                             {
                                 scr.Call(init); 
@@ -295,9 +295,9 @@ class SaverToy
                                 Console.WriteLine("WARNING: No 'init()' function found. Skipping...");
                             }
 
-                            if (scr.Globals["update"] == null)
+                            if (scr.Globals["Update"] == null)
                             {
-                                Console.WriteLine("WARNING: Your project is missing the typical 'update()' entry point.");
+                                Console.WriteLine("WARNING: Your project is missing the typical 'Update()' entry point.");
                             }
 
                             break;
@@ -404,7 +404,7 @@ class SaverToy
                     break;
 
                     case States.Screensaver:
-                        object update = scr.Globals["update"];
+                        object update = scr.Globals["Update"];
                         if (update != null) scr.Call(update);
                         break;
                 }
