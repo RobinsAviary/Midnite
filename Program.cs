@@ -1,5 +1,6 @@
 ﻿using MoonSharp.Interpreter;
 using SFML.Graphics;
+using SFML.System;
 using SFML.Window;
 
 class SaverToy
@@ -99,6 +100,29 @@ class SaverToy
             return Color.Transparent;
         }
 
+        public Vector2f DynValueToVector2f(DynValue T)
+        {
+            Vector2f result = new(0, 0);
+
+            if (T.Type == DataType.Table) {
+                Table t = T.Table;
+                DynValue x = t.Get("x");
+                DynValue y = t.Get("y");
+
+                if (x.Type == DataType.Number)
+                {
+                    result.X = ((float)x.Number);
+                }
+
+                if (y.Type == DataType.Number)
+                {
+                    result.Y = ((float)y.Number);
+                }
+            }
+
+            return result;
+        }
+
         public void ToggleVerbose()
         {
             Verbose = !Verbose;
@@ -176,28 +200,31 @@ class SaverToy
             }
             set
             {
-                switch(value)
+                if (_state != value)
                 {
-                    case States.Screensaver:
-                        //Script scr = new Script(); // Create script
-                        scr.Options.DebugPrint = s => { Console.WriteLine(s); }; // Set up debug
-                        // Include custom libraries
-                        //scr.DoFile(libraryDir + "rc10.lua");
+                    switch (value)
+                    {
+                        case States.Screensaver:
+                            //Script scr = new Script(); // Create script
+                            scr.Options.DebugPrint = s => { Console.WriteLine(s); }; // Set up debug
+                                                                                     // Include custom libraries
+                                                                                     //scr.DoFile(libraryDir + "rc10.lua");
 
-                        // Define in-built functions
-                        scr.Globals["Line"] = (Action<DynValue,DynValue,DynValue>)Line;
-                        scr.Globals["ClearScreen"] = (Action<DynValue>)ClearScreen;
-                        scr.DoFile(directories.Project + "main.lua");
-                        object init = scr.Globals["init"];
-                        if (init != null) scr.Call(init);
-                        break;
+                            // Define in-built functions
+                            scr.Globals["Line"] = (Action<DynValue, DynValue, DynValue>)Line;
+                            scr.Globals["ClearScreen"] = (Action<DynValue>)ClearScreen;
+                            scr.DoFile(directories.Project + "main.lua");
+                            object init = scr.Globals["init"];
+                            if (init != null) scr.Call(init);
+                            break;
 
-                    case States.TextEditor:
+                        case States.TextEditor:
 
-                        break;
+                            break;
+                    }
+
+                    _state = value;
                 }
-
-                _state = value;
             }
         }
 
