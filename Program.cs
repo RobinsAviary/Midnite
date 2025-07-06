@@ -175,7 +175,7 @@ class SaverToy
 
         void DrawLine(DynValue pos1, DynValue pos2, DynValue color)
         {
-            VertexArray array = new VertexArray();
+            VertexArray array = new();
             array.PrimitiveType = PrimitiveType.Lines;
             Vertex v1 = new Vertex();
             Vertex v2 = new Vertex();
@@ -186,6 +186,26 @@ class SaverToy
             v2.Color = _color;
             array.Append(v1);
             array.Append(v2);
+            Target.Draw(array);
+        }
+
+        void DrawTriangle(DynValue pos1, DynValue pos2, DynValue pos3, DynValue color)
+        {
+            VertexArray array = new();
+            array.PrimitiveType = PrimitiveType.Triangles;
+            Vertex v1 = new Vertex();
+            Vertex v2 = new Vertex();
+            Vertex v3 = new Vertex();
+            v1.Position = DynValueToVector2f(pos1);
+            v2.Position = DynValueToVector2f(pos2);
+            v3.Position = DynValueToVector2f(pos3);
+            Color _color = DynValueToColor(color);
+            v1.Color = _color;
+            v2.Color = _color;
+            v3.Color = _color;
+            array.Append(v1);
+            array.Append(v2);
+            array.Append(v3);
             Target.Draw(array);
         }
 
@@ -282,6 +302,7 @@ class SaverToy
                             scr.Globals["DrawRectangle"] = (Action<DynValue, DynValue, DynValue>)DrawRectangle;
                             scr.Globals["DrawCircle"] = (Action<DynValue, DynValue, DynValue>)DrawCircle;
                             scr.Globals["DrawLine"] = (Action<DynValue, DynValue, DynValue>)DrawLine;
+                            scr.Globals["DrawTriangle"] = (Action<DynValue, DynValue, DynValue, DynValue>)DrawTriangle;
                             scr.Globals["ClearScreen"] = (Action<DynValue>)ClearScreen;
                             scr.Globals["GetWindowSize"] = (Func<Table>)GetWindowSize;
                             scr.Globals["GetWindowWidth"] = (Func<DynValue>)GetWindowWidth;
