@@ -149,6 +149,11 @@ class Midnite
             return scr.Call((DynValue)((Table)scr.Globals["Vec2"]).Get("New"), [pos.X, pos.Y]).Table;
         }
 
+        Table ColorNew(uint r, uint g, uint b)
+        {
+            return scr.Call(((Table)scr.Globals["Color"]).Get("New"), [r, g, b]).Table;
+        }
+
         public void ToggleVerbose()
         {
             Verbose = !Verbose;
@@ -360,6 +365,16 @@ class Midnite
             textures.Add(name, texture);
         }
 
+        void UnloadTexture(string name)
+        {
+            if (textures.ContainsKey(name))
+            {
+                textures[name].Dispose(); // Garbage day!
+                textures.Remove(name);
+            }
+            
+        }
+
         void DrawTexture(string name, DynValue position)
         {
             if (textures.ContainsKey(name))
@@ -370,6 +385,18 @@ class Midnite
 
                 Target.Draw(sprite);
             }
+        }
+
+        Table GetTextures()
+        {
+            Table result = new(scr);
+
+            foreach (var item in textures)
+            {
+                result.Append(DynValue.NewString(item.Key));
+            }
+
+            return result;
         }
 
         public enum States
@@ -417,9 +444,12 @@ class Midnite
                             scr.Globals["GetFramerateLimit"] = (Func<DynValue>)GetFramerateLimit;
                             scr.Globals["LoadTexture"] = (Action<string, string>)LoadTexture;
                             scr.Globals["DrawTexture"] = (Action<string, DynValue>)DrawTexture;
+                            scr.Globals["UnloadTexture"] = (Action<string>)UnloadTexture;
+                            scr.Globals["GetTextures"] = (Func<Table>)GetTextures;
 
                             try
                             {
+                                scr.DoFile(directories.Resources + "scripts//libs//Utility.lua");
                                 scr.DoFile(directories.Resources + "scripts//libs//Vec2.lua");
                                 scr.DoFile(directories.Resources + "scripts//libs//Color.lua");
                                 scr.DoFile(directories.Project + "main.lua");
