@@ -534,10 +534,10 @@ class Midnite
 
             RemakeWindow();
 
-            Font font = new("resources/fonts/JetBrainsMono-Regular.ttf");
-            font.SetSmooth(true);
+            //Font font = new("resources/fonts/JetBrainsMono-Regular.ttf");
+            //font.SetSmooth(true);
 
-            file.Font = font;
+            //file.Font = font;
 
             while (Window.IsOpen)
             {
