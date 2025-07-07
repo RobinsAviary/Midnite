@@ -200,6 +200,11 @@ class Midnite
             }
         }
 
+        void HandleException(InterpreterException e)
+        {
+            Console.WriteLine(e.DecoratedMessage);
+        }
+
         public CLIFunctions CLI = new();
 
         static public string Version = "Alpha";
@@ -479,7 +484,14 @@ class Midnite
                 object init = scr.Globals["Init"];
                 if (init != null)
                 {
-                    scr.Call(init);
+                    try
+                    {
+                        scr.Call(init);
+                    }
+                    catch (InterpreterException e)
+                    {
+                        HandleException(e);
+                    }
                 }
                 else if (Verbose)
                 {
@@ -493,9 +505,9 @@ class Midnite
 
                 timer.Restart();
             }
-            catch (MoonSharp.Interpreter.InterpreterException e)
+            catch (InterpreterException e)
             {
-                Console.WriteLine(e.DecoratedMessage);
+                HandleException(e);
             }
         }
 
@@ -638,7 +650,7 @@ class Midnite
                         }
                         catch(InterpreterException e)
                         {
-                            Console.WriteLine(e.DecoratedMessage);
+                            HandleException(e);
                         }
                         
                         break;
