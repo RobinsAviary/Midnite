@@ -4,7 +4,7 @@ using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 
-class SaverToy
+class Midnite
 {
     internal class Program
     {
@@ -175,7 +175,7 @@ class SaverToy
 
             public void PrintVersion()
             {
-                Console.WriteLine($"SaverToy v{Program.Version}");
+                Console.WriteLine($"Midnite v{Program.Version}");
             }
         }
 

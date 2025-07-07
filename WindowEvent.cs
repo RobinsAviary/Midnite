@@ -1,7 +1,7 @@
 ﻿using SFML.Graphics;
 using SFML.Window;
 
-using static SaverToy;
+using static Midnite;
 public class WindowEvent
 {
     private List<Keyboard.Key> pressedKeys = [];

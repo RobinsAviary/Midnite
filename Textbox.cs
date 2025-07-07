@@ -1,7 +1,7 @@
 ﻿using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-using static SaverToy;
+using static Midnite;
 
 internal class Textbox
 {

@@ -1,6 +1,6 @@
 ﻿using SFML.Graphics;
 
-using static SaverToy;
+using static Midnite;
 
 public struct Colors
 {
