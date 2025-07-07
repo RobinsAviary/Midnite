@@ -65,7 +65,7 @@ class Midnite
                 }
             }
 
-            private string project = "testscreen//";
+            private string project = "dvd//";
 
             public string Project
             {
@@ -76,6 +76,22 @@ class Midnite
                 set
                 {
                     project = value;
+                }
+            }
+
+            public string Scripts
+            {
+                get
+                {
+                    return Resources + "scripts//";
+                }
+            }
+
+            public string Libs
+            {
+                get
+                {
+                    return Scripts + "libs//";
                 }
             }
         }
@@ -163,10 +179,10 @@ class Midnite
         internal class CLIFunctions {
             public void PrintHelp()
             {
-                string helpText = "Usage: SaverToy [FLAGS...]" +
+                string helpText = "Usage: Midnite [FLAGS...]" +
                         "\n\nOptions:" +
-                        "\n-V, --version  Get the current version of SaverToy." +
-                        "\n-a, --author   Get info on the author of SaverToy." +
+                        "\n-V, --version  Get the current version of Midnite." +
+                        "\n-a, --author   Get info on the author of Midnite." +
                         "\n-h, -?, --help Displays this help message." +
                         "\n-v, --verbose  Print verbose debug text.";
                 Console.WriteLine(helpText);
@@ -449,9 +465,22 @@ class Midnite
 
                             try
                             {
-                                scr.DoFile(directories.Resources + "scripts//libs//Utility.lua");
-                                scr.DoFile(directories.Resources + "scripts//libs//Vec2.lua");
-                                scr.DoFile(directories.Resources + "scripts//libs//Color.lua");
+                                string[] Libs = {
+                                    "Utility",
+                                    "Vec2",
+                                    "Color",
+                                    "Texture",
+                                };
+
+                                void LoadLibs(string[] Libs, Script scr)
+                                {
+                                    foreach (string Lib in Libs)
+                                    {
+                                        scr.DoFile(directories.Libs + Lib + ".lua");
+                                    }
+                                }
+
+                                LoadLibs(Libs, scr);
                                 scr.DoFile(directories.Project + "main.lua");
 
                                 object init = scr.Globals["Init"];
@@ -523,13 +552,13 @@ class Midnite
             ContextSettings settings = new();
             settings.AntialiasingLevel = Antialiasing;
 
-            // Since the size of SaverToy is dynamic, we'll simply initialize the window size to something sensible by
+            // Since the size of Midnite is dynamic, we'll simply initialize the window size to something sensible by
             // getting the smallest resolution for a fullscreen window that the OS considers reasonable.
             if (Window != null)
             {
                 Window.Close();
             }
-            Window = new(videoMode, $"SaverToy v{Program.Version}", windowStyle, settings);
+            Window = new(videoMode, $"Midnite v{Program.Version}", windowStyle, settings);
             Target = Window;
 
             Window.SetFramerateLimit(FramerateLimit);
@@ -666,7 +695,7 @@ class Midnite
                 else if (arg.StartsWith('-'))
                 {
                     Console.WriteLine($"Unknown flag: {arg}");
-                    Console.WriteLine("Use -h, -?, or --help to view help for SaverToy.");
+                    Console.WriteLine("Use -h, -?, or --help to view help for Midnite.");
                     runProgram = false;
                 }
             }
