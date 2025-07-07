@@ -9,6 +9,21 @@ class SaverToy
     {
         Clock timer = new();
 
+        private uint framerateLimit = 0;
+
+        public uint FramerateLimit
+        {
+            get
+            {
+                return framerateLimit;
+            }
+            set
+            {
+                framerateLimit = value;
+                Window.SetFramerateLimit(value);
+            }
+        }
+
         public string BoolToString(bool value, string falseyText = "FALSE", string trueyText = "TRUE")
         {
             if (value)
@@ -326,6 +341,16 @@ class SaverToy
             return Time();
         }
 
+        void SetFramerateLimit(DynValue limit)
+        {
+            FramerateLimit = (uint)limit.Number;
+        }
+
+        DynValue GetFramerateLimit()
+        {
+            return DynValue.NewNumber(FramerateLimit);
+        }
+
         public enum States
         {
             TextEditor,
@@ -349,10 +374,8 @@ class SaverToy
                         case States.Screensaver:
                             //Script scr = new Script(); // Create script
                             scr.Options.DebugPrint = s => { Console.WriteLine(s); }; // Set up debug
-                                                                                     // Include custom libraries
-                                                                                     //scr.DoFile(libraryDir + "rc10.lua");
 
-                            // Define in-built functions
+                            // Define built-in functions
                             scr.Globals["DrawRectangle"] = (Action<DynValue, DynValue, DynValue>)DrawRectangle;
                             scr.Globals["DrawCircle"] = (Action<DynValue, DynValue, DynValue>)DrawCircle;
                             scr.Globals["DrawLine"] = (Action<DynValue, DynValue, DynValue>)DrawLine;
@@ -369,9 +392,13 @@ class SaverToy
                             scr.Globals["Exit"] = (Action)Exit;
                             scr.Globals["Time"] = (Func<double>)Time;
                             scr.Globals["T"] = (Func<double>)T;
+                            scr.Globals["SetFramerateLimit"] = (Action<DynValue>)SetFramerateLimit;
+                            scr.Globals["GetFramerateLimit"] = (Func<DynValue>)GetFramerateLimit;
+
                             try
                             {
                                 scr.DoFile(directories.Resources + "scripts//libs//Vec2.lua");
+                                scr.DoFile(directories.Resources + "scripts//libs//Color.lua");
                                 scr.DoFile(directories.Project + "main.lua");
 
                                 object init = scr.Globals["Init"];
@@ -451,6 +478,8 @@ class SaverToy
             }
             Window = new(videoMode, $"SaverToy v{Program.Version}", windowStyle, settings);
             Target = Window;
+
+            Window.SetFramerateLimit(FramerateLimit);
 
             Window.Closed += events.Closed;
             Window.KeyPressed += events.KeyPressed;
