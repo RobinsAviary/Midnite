@@ -2,6 +2,7 @@
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using System.Numerics;
 
 class SaverToy
 {
@@ -140,6 +141,11 @@ class SaverToy
             return result;
         }
 
+        Table Vec2New(Vector2f pos)
+        {
+            return scr.Call((DynValue)((Table)scr.Globals["Vec2"]).Get("New"), [pos.X, pos.Y]).Table;
+        }
+
         public void ToggleVerbose()
         {
             Verbose = !Verbose;
@@ -270,10 +276,7 @@ class SaverToy
 
             Vector2u windowSize = Window.Size;
 
-            t.Set("x", DynValue.NewNumber(windowSize.X));
-            t.Set("y", DynValue.NewNumber(windowSize.Y));
-
-            return t;
+            return Vec2New(new(windowSize.X, windowSize.Y));
         }
 
         DynValue GetWindowWidth()
@@ -294,12 +297,7 @@ class SaverToy
         {
             Vector2i mousePosition = Mouse.GetPosition(Window);
 
-            Table t = new(scr);
-
-            t.Set("x", DynValue.NewNumber(mousePosition.X));
-            t.Set("y", DynValue.NewNumber(mousePosition.Y));
-
-            return t;
+            return Vec2New(new(mousePosition.X, mousePosition.Y));
         }
 
         bool IsCursorOnscreen()
