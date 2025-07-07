@@ -1,8 +1,8 @@
 ﻿using MoonSharp.Interpreter;
+using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-using System.Numerics;
 
 class SaverToy
 {
@@ -11,6 +11,9 @@ class SaverToy
         Clock timer = new();
 
         private uint framerateLimit = 0;
+
+        public Dictionary<string, Texture> textures = new();
+        public Dictionary<string, Sound> sounds = new();
 
         public uint FramerateLimit
         {
@@ -349,6 +352,26 @@ class SaverToy
             return DynValue.NewNumber(FramerateLimit);
         }
 
+        void LoadTexture(string name, string filename)
+        {
+            Texture texture;
+
+            texture = new(directories.Project + filename);
+            textures.Add(name, texture);
+        }
+
+        void DrawTexture(string name, DynValue position)
+        {
+            if (textures.ContainsKey(name))
+            {
+                Sprite sprite = new();
+                sprite.Texture = textures[name];
+                sprite.Position = DynValueToVector2f(position);
+
+                Target.Draw(sprite);
+            }
+        }
+
         public enum States
         {
             TextEditor,
@@ -392,6 +415,8 @@ class SaverToy
                             scr.Globals["T"] = (Func<double>)T;
                             scr.Globals["SetFramerateLimit"] = (Action<DynValue>)SetFramerateLimit;
                             scr.Globals["GetFramerateLimit"] = (Func<DynValue>)GetFramerateLimit;
+                            scr.Globals["LoadTexture"] = (Action<string, string>)LoadTexture;
+                            scr.Globals["DrawTexture"] = (Action<string, DynValue>)DrawTexture;
 
                             try
                             {
@@ -539,7 +564,15 @@ class SaverToy
 
                     case States.Screensaver:
                         object update = scr.Globals["Update"];
-                        if (update != null) scr.Call(update);
+                        try
+                        {
+                            if (update != null) scr.Call(update);
+                        }
+                        catch(InterpreterException e)
+                        {
+                            Console.WriteLine(e.DecoratedMessage);
+                        }
+                        
                         break;
                 }
                 events.ClearKeys();
