@@ -423,6 +423,82 @@ class Midnite
 
         private States _state = States.TextEditor;
 
+        void LoadProject(ref Script scr, string project)
+        {
+            directories.Project = project + "//";
+
+            scr = new();
+
+            //Script scr = new Script(); // Create script
+            scr.Options.DebugPrint = s => { Console.WriteLine(s); }; // Set up debug
+
+            // Define built-in functions
+            scr.Globals["DrawRectangle"] = (Action<DynValue, DynValue, DynValue>)DrawRectangle;
+            scr.Globals["DrawCircle"] = (Action<DynValue, DynValue, DynValue>)DrawCircle;
+            scr.Globals["DrawLine"] = (Action<DynValue, DynValue, DynValue>)DrawLine;
+            scr.Globals["DrawTriangle"] = (Action<DynValue, DynValue, DynValue, DynValue>)DrawTriangle;
+            scr.Globals["ClearScreen"] = (Action<DynValue>)ClearScreen;
+            scr.Globals["GetWindowSize"] = (Func<Table>)GetWindowSize;
+            scr.Globals["GetWindowWidth"] = (Func<DynValue>)GetWindowWidth;
+            scr.Globals["GetWindowHeight"] = (Func<DynValue>)GetWindowHeight;
+            scr.Globals["GetCursorPosition"] = (Func<Table>)GetCursorPosition;
+            scr.Globals["IsCursorOnscreen"] = (Func<bool>)IsCursorOnscreen;
+            scr.Globals["RelaunchWindow"] = (Action)RelaunchWindow;
+            scr.Globals["GetAntialiasingLevel"] = (Func<DynValue>)GetAntialiasingLevel;
+            scr.Globals["SetAntialiasingLevel"] = (Action<DynValue>)SetAntialiasingLevel;
+            scr.Globals["Exit"] = (Action)Exit;
+            scr.Globals["Time"] = (Func<double>)Time;
+            scr.Globals["T"] = (Func<double>)T;
+            scr.Globals["SetFramerateLimit"] = (Action<DynValue>)SetFramerateLimit;
+            scr.Globals["GetFramerateLimit"] = (Func<DynValue>)GetFramerateLimit;
+            scr.Globals["LoadTexture"] = (Action<string, string>)LoadTexture;
+            scr.Globals["DrawTexture"] = (Action<string, DynValue>)DrawTexture;
+            scr.Globals["UnloadTexture"] = (Action<string>)UnloadTexture;
+            scr.Globals["GetTextures"] = (Func<Table>)GetTextures;
+
+            try
+            {
+                string[] Libs = {
+                    "Utility",
+                    "Vec2",
+                    "Color",
+                    "Texture",
+                };
+
+                void LoadLibs(string[] Libs, Script scr)
+                {
+                    foreach (string Lib in Libs)
+                    {
+                        scr.DoFile(directories.Libs + Lib + ".lua");
+                    }
+                }
+
+                LoadLibs(Libs, scr);
+                scr.DoFile(directories.Project + "main.lua");
+
+                object init = scr.Globals["Init"];
+                if (init != null)
+                {
+                    scr.Call(init);
+                }
+                else if (Verbose)
+                {
+                    Console.WriteLine("WARNING: No 'init()' function found. Skipping...");
+                }
+
+                if (scr.Globals["Update"] == null)
+                {
+                    Console.WriteLine("WARNING: Your project is missing the typical 'Update()' entry point.");
+                }
+
+                timer.Restart();
+            }
+            catch (MoonSharp.Interpreter.InterpreterException e)
+            {
+                Console.WriteLine(e.DecoratedMessage);
+            }
+        }
+
         public States State
         {
             get
@@ -436,74 +512,7 @@ class Midnite
                     switch (value)
                     {
                         case States.Screensaver:
-                            //Script scr = new Script(); // Create script
-                            scr.Options.DebugPrint = s => { Console.WriteLine(s); }; // Set up debug
-
-                            // Define built-in functions
-                            scr.Globals["DrawRectangle"] = (Action<DynValue, DynValue, DynValue>)DrawRectangle;
-                            scr.Globals["DrawCircle"] = (Action<DynValue, DynValue, DynValue>)DrawCircle;
-                            scr.Globals["DrawLine"] = (Action<DynValue, DynValue, DynValue>)DrawLine;
-                            scr.Globals["DrawTriangle"] = (Action<DynValue, DynValue, DynValue, DynValue>)DrawTriangle;
-                            scr.Globals["ClearScreen"] = (Action<DynValue>)ClearScreen;
-                            scr.Globals["GetWindowSize"] = (Func<Table>)GetWindowSize;
-                            scr.Globals["GetWindowWidth"] = (Func<DynValue>)GetWindowWidth;
-                            scr.Globals["GetWindowHeight"] = (Func<DynValue>)GetWindowHeight;
-                            scr.Globals["GetCursorPosition"] = (Func<Table>)GetCursorPosition;
-                            scr.Globals["IsCursorOnscreen"] = (Func<bool>)IsCursorOnscreen;
-                            scr.Globals["RelaunchWindow"] = (Action)RelaunchWindow;
-                            scr.Globals["GetAntialiasingLevel"] = (Func<DynValue>)GetAntialiasingLevel;
-                            scr.Globals["SetAntialiasingLevel"] = (Action<DynValue>)SetAntialiasingLevel;
-                            scr.Globals["Exit"] = (Action)Exit;
-                            scr.Globals["Time"] = (Func<double>)Time;
-                            scr.Globals["T"] = (Func<double>)T;
-                            scr.Globals["SetFramerateLimit"] = (Action<DynValue>)SetFramerateLimit;
-                            scr.Globals["GetFramerateLimit"] = (Func<DynValue>)GetFramerateLimit;
-                            scr.Globals["LoadTexture"] = (Action<string, string>)LoadTexture;
-                            scr.Globals["DrawTexture"] = (Action<string, DynValue>)DrawTexture;
-                            scr.Globals["UnloadTexture"] = (Action<string>)UnloadTexture;
-                            scr.Globals["GetTextures"] = (Func<Table>)GetTextures;
-
-                            try
-                            {
-                                string[] Libs = {
-                                    "Utility",
-                                    "Vec2",
-                                    "Color",
-                                    "Texture",
-                                };
-
-                                void LoadLibs(string[] Libs, Script scr)
-                                {
-                                    foreach (string Lib in Libs)
-                                    {
-                                        scr.DoFile(directories.Libs + Lib + ".lua");
-                                    }
-                                }
-
-                                LoadLibs(Libs, scr);
-                                scr.DoFile(directories.Project + "main.lua");
-
-                                object init = scr.Globals["Init"];
-                                if (init != null)
-                                {
-                                    scr.Call(init);
-                                }
-                                else if (Verbose)
-                                {
-                                    Console.WriteLine("WARNING: No 'init()' function found. Skipping...");
-                                }
-
-                                if (scr.Globals["Update"] == null)
-                                {
-                                    Console.WriteLine("WARNING: Your project is missing the typical 'Update()' entry point.");
-                                }
-
-                                timer.Restart();
-                            }
-                            catch(MoonSharp.Interpreter.InterpreterException e)
-                            {
-                                Console.WriteLine(e.DecoratedMessage);
-                            }
+                            LoadProject(ref scr, "dvd");
 
                             break;
 
