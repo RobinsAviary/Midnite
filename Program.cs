@@ -9,6 +9,9 @@ class Midnite
     internal class Program
     {
         Clock timer = new();
+        Clock deltaTimer = new();
+
+        double delta = 0;
 
         private uint framerateLimit = 0;
 
@@ -368,6 +371,11 @@ class Midnite
             return Time();
         }
 
+        double Delta()
+        {
+            return delta;
+        }
+
         void SetFramerateLimit(DynValue limit)
         {
             FramerateLimit = (uint)limit.Number;
@@ -406,6 +414,42 @@ class Midnite
 
                 Target.Draw(sprite);
             }
+        }
+
+        DynValue TextureSize(string name)
+        {
+            if (textures.ContainsKey(name))
+            {
+                Vector2u size = textures[name].Size;
+
+                return DynValue.NewTable(Vec2New(new(size.X, size.Y)));
+            }
+
+            return DynValue.NewNil();
+        }
+
+        DynValue TextureWidth(string name)
+        {
+            if (textures.ContainsKey(name))
+            {
+                uint width = textures[name].Size.X;
+
+                return DynValue.NewNumber(width);
+            }
+
+            return DynValue.NewNil();
+        }
+
+        DynValue TextureHeight(string name)
+        {
+            if (textures.ContainsKey(name))
+            {
+                uint height = textures[name].Size.Y;
+
+                return DynValue.NewNumber(height);
+            }
+
+            return DynValue.NewNil();
         }
 
         Table GetTextures()
@@ -454,12 +498,22 @@ class Midnite
             scr.Globals["Exit"] = (Action)Exit;
             scr.Globals["Time"] = (Func<double>)Time;
             scr.Globals["T"] = (Func<double>)T;
+            scr.Globals["Delta"] = (Func<double>)Delta;
             scr.Globals["SetFramerateLimit"] = (Action<DynValue>)SetFramerateLimit;
             scr.Globals["GetFramerateLimit"] = (Func<DynValue>)GetFramerateLimit;
-            scr.Globals["LoadTexture"] = (Action<string, string>)LoadTexture;
-            scr.Globals["DrawTexture"] = (Action<string, DynValue>)DrawTexture;
-            scr.Globals["UnloadTexture"] = (Action<string>)UnloadTexture;
-            scr.Globals["GetTextures"] = (Func<Table>)GetTextures;
+
+            // Make Texture Namespace
+            Table TextureNS = new(scr);
+
+            scr.Globals.Set("Texture", DynValue.NewTable(TextureNS)); // Add it to global namespace
+
+            TextureNS["Load"] = (Action<string, string>)LoadTexture;
+            TextureNS["Draw"] = (Action<string, DynValue>)DrawTexture;
+            TextureNS["Unload"] = (Action<string>)UnloadTexture;
+            TextureNS["GetLoaded"] = (Func<Table>)GetTextures;
+            TextureNS["Size"] = (Func<string, DynValue>)TextureSize;
+            TextureNS["Width"] = (Func<string, DynValue>)TextureWidth;
+            TextureNS["Height"] = (Func<string, DynValue>)TextureHeight;
 
             try
             {
@@ -467,7 +521,6 @@ class Midnite
                     "Utility",
                     "Vec2",
                     "Color",
-                    "Texture",
                 };
 
                 void LoadLibs(string[] Libs, Script scr)
@@ -477,6 +530,9 @@ class Midnite
                         scr.DoFile(directories.Libs + Lib + ".lua");
                     }
                 }
+
+                timer.Restart();
+                deltaTimer.Restart();
 
                 LoadLibs(Libs, scr);
                 scr.DoFile(directories.Project + "main.lua");
@@ -503,7 +559,7 @@ class Midnite
                     Console.WriteLine("WARNING: Your project is missing the typical 'Update()' entry point.");
                 }
 
-                timer.Restart();
+                
             }
             catch (InterpreterException e)
             {
@@ -658,6 +714,7 @@ class Midnite
                 events.ClearKeys();
                 events.ClearTypedText();
                 Window.Display();
+                delta = deltaTimer.Restart().AsSeconds();
             }
         }
     }
