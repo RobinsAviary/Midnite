@@ -205,7 +205,11 @@ class Midnite
 
         void HandleException(InterpreterException e)
         {
-            Console.WriteLine(e.DecoratedMessage);
+            Console.WriteLine("Runtime Exception: " + e.DecoratedMessage);
+            if (Window != null)
+            {
+                Window.Close();
+            }
         }
 
         public CLIFunctions CLI = new();
@@ -404,15 +408,25 @@ class Midnite
             
         }
 
-        void DrawTexture(string name, DynValue position)
+        void DrawTexture(string name, DynValue position, DynValue tint)
         {
-            if (textures.ContainsKey(name))
-            {
-                Sprite sprite = new();
-                sprite.Texture = textures[name];
-                sprite.Position = DynValueToVector2f(position);
+            if (name != null) {
+                if (textures.ContainsKey(name))
+                {
+                    Sprite sprite = new();
+                    sprite.Texture = textures[name];
+                    sprite.Position = DynValueToVector2f(position);
 
-                Target.Draw(sprite);
+                    Color color = Color.White;
+
+                    if (tint.Type == DataType.Table)
+                    {
+                        color = DynValueToColor(tint);
+                    }
+                    sprite.Color = color;
+
+                    Target.Draw(sprite);
+                }
             }
         }
 
@@ -482,20 +496,8 @@ class Midnite
             scr.Options.DebugPrint = s => { Console.WriteLine(s); }; // Set up debug
 
             // Define built-in functions
-            scr.Globals["DrawRectangle"] = (Action<DynValue, DynValue, DynValue>)DrawRectangle;
-            scr.Globals["DrawCircle"] = (Action<DynValue, DynValue, DynValue>)DrawCircle;
-            scr.Globals["DrawLine"] = (Action<DynValue, DynValue, DynValue>)DrawLine;
-            scr.Globals["DrawTriangle"] = (Action<DynValue, DynValue, DynValue, DynValue>)DrawTriangle;
-            scr.Globals["ClearScreen"] = (Action<DynValue>)ClearScreen;
-            scr.Globals["GetWindowSize"] = (Func<Table>)GetWindowSize;
-            scr.Globals["GetWindowWidth"] = (Func<DynValue>)GetWindowWidth;
-            scr.Globals["GetWindowHeight"] = (Func<DynValue>)GetWindowHeight;
-            scr.Globals["GetCursorPosition"] = (Func<Table>)GetCursorPosition;
-            scr.Globals["IsCursorOnscreen"] = (Func<bool>)IsCursorOnscreen;
-            scr.Globals["RelaunchWindow"] = (Action)RelaunchWindow;
             scr.Globals["GetAntialiasingLevel"] = (Func<DynValue>)GetAntialiasingLevel;
             scr.Globals["SetAntialiasingLevel"] = (Action<DynValue>)SetAntialiasingLevel;
-            scr.Globals["Exit"] = (Action)Exit;
             scr.Globals["Time"] = (Func<double>)Time;
             scr.Globals["T"] = (Func<double>)T;
             scr.Globals["Delta"] = (Func<double>)Delta;
@@ -504,16 +506,37 @@ class Midnite
 
             // Make Texture Namespace
             Table TextureNS = new(scr);
+            Table DrawNS = new(scr);
+            Table WindowNS = new(scr);
+            Table CursorNS = new(scr);
 
             scr.Globals.Set("Texture", DynValue.NewTable(TextureNS)); // Add it to global namespace
+            scr.Globals.Set("Draw", DynValue.NewTable(DrawNS));
+            scr.Globals.Set("Window", DynValue.NewTable(WindowNS));
+            scr.Globals.Set("Cursor", DynValue.NewTable(CursorNS));
 
             TextureNS["Load"] = (Action<string, string>)LoadTexture;
-            TextureNS["Draw"] = (Action<string, DynValue>)DrawTexture;
             TextureNS["Unload"] = (Action<string>)UnloadTexture;
             TextureNS["GetLoaded"] = (Func<Table>)GetTextures;
             TextureNS["Size"] = (Func<string, DynValue>)TextureSize;
             TextureNS["Width"] = (Func<string, DynValue>)TextureWidth;
             TextureNS["Height"] = (Func<string, DynValue>)TextureHeight;
+
+            DrawNS["Rectangle"] = (Action<DynValue, DynValue, DynValue>)DrawRectangle;
+            DrawNS["Circle"] = (Action<DynValue, DynValue, DynValue>)DrawCircle;
+            DrawNS["Line"] = (Action<DynValue, DynValue, DynValue>)DrawLine;
+            DrawNS["Triangle"] = (Action<DynValue, DynValue, DynValue, DynValue>)DrawTriangle;
+            DrawNS["Clear"] = (Action<DynValue>)ClearScreen;
+            DrawNS["Texture"] = (Action<string, DynValue, DynValue>)DrawTexture;
+
+            WindowNS["Size"] = (Func<Table>)GetWindowSize;
+            WindowNS["Width"] = (Func<DynValue>)GetWindowWidth;
+            WindowNS["Height"] = (Func<DynValue>)GetWindowHeight;
+            WindowNS["Relaunch"] = scr.Globals["RelaunchWindow"] = (Action)RelaunchWindow;
+            WindowNS["Close"] = (Action)Exit;
+
+            CursorNS["Position"] = (Func<Table>)GetCursorPosition;
+            CursorNS["OnScreen"] = (Func<bool>)IsCursorOnscreen;
 
             try
             {
