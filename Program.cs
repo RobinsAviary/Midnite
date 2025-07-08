@@ -11,6 +11,8 @@ class Midnite
         Clock timer = new();
         Clock deltaTimer = new();
 
+        static CoreModules modules = CoreModules.Preset_HardSandbox | CoreModules.Metatables | CoreModules.ErrorHandling | CoreModules.Coroutine | CoreModules.OS_Time;
+
         double delta = 0;
 
         private uint framerateLimit = 0;
@@ -221,7 +223,7 @@ class Midnite
         public bool WinScreen = false;
         public bool Fullscreen = false;
         public uint Antialiasing = 0;
-        public Script scr = new();
+        public Script scr = new(modules);
         RenderWindow? Window;
         RenderTarget? Target;
 
@@ -490,7 +492,7 @@ class Midnite
         {
             directories.Project = project + "//";
 
-            scr = new();
+            scr = new(modules);
 
             //Script scr = new Script(); // Create script
             scr.Options.DebugPrint = s => { Console.WriteLine(s); }; // Set up debug
