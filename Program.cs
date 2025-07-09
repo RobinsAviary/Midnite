@@ -11,6 +11,7 @@ class Midnite
         Clock timer = new();
         Clock deltaTimer = new();
 
+        // Limited set of modules for users :)
         static CoreModules modules = CoreModules.Preset_HardSandbox | CoreModules.Metatables | CoreModules.ErrorHandling | CoreModules.Coroutine | CoreModules.OS_Time;
 
         double delta = 0;
@@ -394,10 +395,14 @@ class Midnite
 
         void LoadTexture(string name, string filename)
         {
-            Texture texture;
+            if (!textures.ContainsKey(name))
+            {
+                Texture texture;
 
-            texture = new(directories.Project + filename);
-            textures.Add(name, texture);
+                texture = new(directories.Project + filename);
+
+                textures.Add(name, texture);
+            }
         }
 
         void UnloadTexture(string name)
@@ -410,13 +415,14 @@ class Midnite
             
         }
 
-        void DrawTexture(string name, DynValue position, DynValue tint)
+        void DrawTexture(string name, DynValue position, DynValue tint, DynValue origin)
         {
             if (name != null) {
                 if (textures.ContainsKey(name))
                 {
                     Sprite sprite = new();
-                    sprite.Texture = textures[name];
+                    Texture texture = textures[name];
+                    sprite.Texture = texture;
                     sprite.Position = DynValueToVector2f(position);
 
                     Color color = Color.White;
@@ -426,6 +432,37 @@ class Midnite
                         color = DynValueToColor(tint);
                     }
                     sprite.Color = color;
+                    Vector2f sizef = ((Vector2f)texture.Size);
+                    Vector2f originf = DynValueToVector2f(origin);
+                    sprite.Origin = new(sizef.X * originf.X, sizef.Y * originf.Y);
+
+                    Target.Draw(sprite);
+                }
+            }
+        }
+
+        void DrawTextureSR(string name, DynValue position, DynValue tint, DynValue origin, DynValue scale, DynValue rotation)
+        {
+            if (name != null)
+            {
+                if (textures.ContainsKey(name))
+                {
+                    Sprite sprite = new();
+                    Texture texture = textures[name];
+                    sprite.Texture = texture;
+                    sprite.Position = DynValueToVector2f(position);
+                    Color color = Color.White;
+
+                    if (tint.Type == DataType.Table)
+                    {
+                        color = DynValueToColor(tint);
+                    }
+                    sprite.Color = color;
+                    sprite.Scale = DynValueToVector2f(scale);
+                    sprite.Rotation = DynValueToFloat(rotation);
+                    Vector2f sizef = ((Vector2f)texture.Size);
+                    Vector2f originf = DynValueToVector2f(origin);
+                    sprite.Origin = new(sizef.X * originf.X, sizef.Y * originf.Y);  
 
                     Target.Draw(sprite);
                 }
@@ -490,8 +527,23 @@ class Midnite
 
         void LoadProject(ref Script scr, string project)
         {
+            foreach (KeyValuePair<string, Texture> pair in textures)
+            {
+                pair.Value.Dispose();
+            }
+            textures.Clear();
+
+            foreach (KeyValuePair<string, Sound> pair in sounds)
+            {
+                pair.Value.Dispose();
+            }
+            sounds.Clear();
+
+            Antialiasing = 0;
+
             directories.Project = project + "//";
 
+            scr = null;
             scr = new(modules);
 
             //Script scr = new Script(); // Create script
@@ -529,7 +581,8 @@ class Midnite
             DrawNS["Line"] = (Action<DynValue, DynValue, DynValue>)DrawLine;
             DrawNS["Triangle"] = (Action<DynValue, DynValue, DynValue, DynValue>)DrawTriangle;
             DrawNS["Clear"] = (Action<DynValue>)ClearScreen;
-            DrawNS["Texture"] = (Action<string, DynValue, DynValue>)DrawTexture;
+            DrawNS["Texture"] = (Action<string, DynValue, DynValue, DynValue>)DrawTexture;
+            DrawNS["TextureSR"] = (Action<string, DynValue, DynValue, DynValue, DynValue, DynValue>)DrawTextureSR;
 
             WindowNS["Size"] = (Func<Table>)GetWindowSize;
             WindowNS["Width"] = (Func<DynValue>)GetWindowWidth;
@@ -578,6 +631,8 @@ class Midnite
                 {
                     Console.WriteLine("WARNING: No 'init()' function found. Skipping...");
                 }
+
+                RelaunchWindow();
 
                 if (scr.Globals["Update"] == null)
                 {
@@ -643,7 +698,24 @@ class Midnite
         {
             Styles windowStyle = Styles.Default;
 
-            VideoMode videoMode = VideoMode.FullscreenModes.Last();
+            VideoMode videoMode;
+            bool windowPosSet = false;
+            Vector2i windowPos = new();
+
+            if (Window == null)
+            {
+                videoMode = VideoMode.FullscreenModes.Last();
+            }
+            else
+            {
+                Vector2u size = Window.Size;
+
+                videoMode = new(size.X, size.Y);
+                windowPos = Window.Position;
+                windowPosSet = true;
+
+                Window.Close();
+            }
 
             if (Fullscreen)
             {
@@ -656,11 +728,12 @@ class Midnite
 
             // Since the size of Midnite is dynamic, we'll simply initialize the window size to something sensible by
             // getting the smallest resolution for a fullscreen window that the OS considers reasonable.
-            if (Window != null)
-            {
-                Window.Close();
-            }
+
             Window = new(videoMode, $"Midnite v{Program.Version}", windowStyle, settings);
+            if (windowPosSet)
+            {
+                Window.Position = windowPos;
+            }
             Target = Window;
 
             Window.SetFramerateLimit(FramerateLimit);
@@ -693,8 +766,6 @@ class Midnite
         {
             Textbox file = new(this);
 
-            RemakeWindow();
-
             //Font font = new("resources/fonts/JetBrainsMono-Regular.ttf");
             //font.SetSmooth(true);
 
@@ -713,6 +784,11 @@ class Midnite
                 {
                     Fullscreen = !Fullscreen;
                     RemakeWindow();
+                }
+
+                if (Keyboard.IsKeyPressed(Keyboard.Key.LControl) && IsKeyPressed(Keyboard.Key.R))
+                {
+                    LoadProject(ref scr, "testscreen");
                 }
 
                 Window.Clear(Color.Black);
