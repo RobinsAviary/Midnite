@@ -19,7 +19,7 @@ class Midnite
         private uint framerateLimit = 0;
 
         public Dictionary<string, Texture> textures = new();
-        public Dictionary<string, Sound> sounds = new();
+        public Dictionary<string, SoundBuffer> sounds = new();
 
         public uint FramerateLimit
         {
@@ -424,7 +424,26 @@ class Midnite
                 textures[name].Dispose(); // Garbage day!
                 textures.Remove(name);
             }
-            
+
+        }
+
+        void LoadSound(string name, string filename)
+        {
+            if (sounds.ContainsKey(name))
+            {
+                SoundBuffer sound;
+                sound = new(filename);
+                sounds.Add(name, sound);
+            }
+        }
+
+        void UnloadSound(string name)
+        {
+            if (textures.ContainsKey(name))
+            {
+                sounds[name].Dispose();
+                sounds.Remove(name);
+            }
         }
 
         void DrawTexture(string name, DynValue position, DynValue tint, DynValue origin)
@@ -545,7 +564,7 @@ class Midnite
             }
             textures.Clear();
 
-            foreach (KeyValuePair<string, Sound> pair in sounds)
+            foreach (KeyValuePair<string, SoundBuffer> pair in sounds)
             {
                 pair.Value.Dispose();
             }
@@ -575,11 +594,13 @@ class Midnite
             Table DrawNS = new(scr);
             Table WindowNS = new(scr);
             Table CursorNS = new(scr);
+            Table SoundNS = new(scr);
 
             scr.Globals.Set("Texture", DynValue.NewTable(TextureNS)); // Add it to global namespace
             scr.Globals.Set("Draw", DynValue.NewTable(DrawNS));
             scr.Globals.Set("Window", DynValue.NewTable(WindowNS));
             scr.Globals.Set("Cursor", DynValue.NewTable(CursorNS));
+            scr.Globals.Set("Sound", DynValue.NewTable(SoundNS));
 
             TextureNS["Load"] = (Action<string, string>)LoadTexture;
             TextureNS["Unload"] = (Action<string>)UnloadTexture;
@@ -604,6 +625,9 @@ class Midnite
 
             CursorNS["Position"] = (Func<Table>)GetCursorPosition;
             CursorNS["OnScreen"] = (Func<bool>)IsCursorOnscreen;
+
+            SoundNS["Load"] = (Action<string, string>)LoadSound;
+            SoundNS["Unload"] = (Action<string>)UnloadSound;
 
             try
             {
@@ -674,7 +698,7 @@ class Midnite
                     switch (value)
                     {
                         case States.Screensaver:
-                            LoadProject(ref scr, "dvd");
+                            LoadProject(ref scr, "MNS-TransRights");
 
                             break;
 
@@ -716,26 +740,28 @@ class Midnite
             bool windowPosSet = false;
             Vector2i windowPos = new();
 
-            if (Window == null)
-            {
-                videoMode = VideoMode.FullscreenModes.Last();
-            }
-            else
-            {
-                Vector2u size = Window.Size;
+            videoMode = VideoMode.FullscreenModes.Last();
 
-                videoMode = new(size.X, size.Y);
-                windowPos = Window.Position;
-                windowPosSet = true;
+            if (Window != null)
+            {
+                if (!Fullscreen)
+                {
+                    Vector2u size = Window.Size;
+
+                    videoMode = new(size.X, size.Y);
+                    windowPos = Window.Position;
+                    windowPosSet = true;
+                }
+
+                if (Fullscreen)
+                {
+                    windowStyle = Styles.None;
+                    videoMode = VideoMode.DesktopMode;
+                }
 
                 Window.Close();
             }
-
-            if (Fullscreen)
-            {
-                windowStyle = Styles.None;
-                videoMode = VideoMode.DesktopMode;
-            }
+            
 
             ContextSettings settings = new();
             settings.AntialiasingLevel = Antialiasing;
