@@ -30,7 +30,10 @@ class Midnite
             set
             {
                 framerateLimit = value;
-                Window.SetFramerateLimit(value);
+                if (Window != null)
+                {
+                    Window.SetFramerateLimit(value);
+                }
             }
         }
 
@@ -424,6 +427,11 @@ class Midnite
             return delta;
         }
 
+        double FPS()
+        {
+            return Math.Floor(1 / Delta());
+        }
+
         void SetFramerateLimit(DynValue limit)
         {
             FramerateLimit = (uint)limit.Number;
@@ -617,6 +625,7 @@ class Midnite
             scr.Globals["Time"] = (Func<double>)Time;
             scr.Globals["T"] = (Func<double>)T;
             scr.Globals["Delta"] = (Func<double>)Delta;
+            scr.Globals["FPS"] = (Func<double>)FPS;
             scr.Globals["SetFramerateLimit"] = (Action<DynValue>)SetFramerateLimit;
             scr.Globals["GetFramerateLimit"] = (Func<DynValue>)GetFramerateLimit;
 
@@ -633,9 +642,7 @@ class Midnite
             scr.Globals.Set("Cursor", DynValue.NewTable(CursorNS));
             scr.Globals.Set("Sound", DynValue.NewTable(SoundNS));
 
-            scr.Globals["SetTitle"] = (Action<string>)SetTitle;
-            scr.Globals["GetTitle"] = (Func<DynValue>)GetTitle;
-            scr.Globals["MIDNITE_VERSION"] = Version;
+            scr.Globals["MIDNITE_VERSION"] = DynValue.NewString(Version);
 
             TextureNS["Load"] = (Action<string, string>)LoadTexture;
             TextureNS["Unload"] = (Action<string>)UnloadTexture;
@@ -657,6 +664,8 @@ class Midnite
             WindowNS["Height"] = (Func<DynValue>)GetWindowHeight;
             WindowNS["Relaunch"] = scr.Globals["RelaunchWindow"] = (Action)RelaunchWindow;
             WindowNS["Close"] = (Action)Exit;
+            WindowNS["SetTitle"] = (Action<string>)SetTitle;
+            WindowNS["GetTitle"] = (Func<DynValue>)GetTitle;
 
             CursorNS["Position"] = (Func<Table>)GetCursorPosition;
             CursorNS["OnScreen"] = (Func<bool>)IsCursorOnscreen;
