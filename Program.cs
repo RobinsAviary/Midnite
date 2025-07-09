@@ -71,13 +71,25 @@ class Midnite
                 }
             }
 
-            private string project = "dvd//";
+            private string project = "";
 
             public string Project
             {
                 get
                 {
                     return Screens + project;
+                }
+                set
+                {
+                    project = value;
+                }
+            }
+
+            public string RawProject
+            {
+                get
+                {
+                    return project;
                 }
                 set
                 {
@@ -399,7 +411,7 @@ class Midnite
             {
                 Texture texture;
 
-                texture = new(directories.Project + filename);
+                texture = new(directories.Project + "//" + filename);
 
                 textures.Add(name, texture);
             }
@@ -613,7 +625,9 @@ class Midnite
                 deltaTimer.Restart();
 
                 LoadLibs(Libs, scr);
-                scr.DoFile(directories.Project + "main.lua");
+                directories.Project = project;
+                Console.WriteLine(project);
+                scr.DoFile(directories.Project + "\\" + "main.lua");
 
                 object init = scr.Globals["Init"];
                 if (init != null)
@@ -788,7 +802,7 @@ class Midnite
 
                 if (Keyboard.IsKeyPressed(Keyboard.Key.LControl) && IsKeyPressed(Keyboard.Key.R))
                 {
-                    LoadProject(ref scr, "testscreen");
+                    LoadProject(ref scr, directories.RawProject);
                 }
 
                 Window.Clear(Color.Black);
