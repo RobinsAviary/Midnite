@@ -325,14 +325,21 @@ class Midnite
             return defaultValue;
         }
 
-        void DrawCircle(DynValue position, DynValue radius, DynValue color)
+        void DrawCircle(DynValue position, DynValue radius, DynValue color, double? sides)
         {
             Vector2f _position = DynValueToVector2f(position);
             float _radius = DynValueToFloat(radius);
             Vector2f _offset = new(_radius, _radius);
             Color _color = DynValueToColor(color);
+            double _sides = 32;
+            if (sides != null)
+            {
+                _sides = (double)sides;
+            }
+           
 
             CircleShape shape = new();
+            shape.SetPointCount((uint)_sides);
             shape.Position = _position - _offset;
             shape.Radius = _radius;
             shape.FillColor = _color;
@@ -625,9 +632,6 @@ class Midnite
             scr.Globals["Time"] = (Func<double>)Time;
             scr.Globals["T"] = (Func<double>)T;
             scr.Globals["Delta"] = (Func<double>)Delta;
-            scr.Globals["FPS"] = (Func<double>)FPS;
-            scr.Globals["SetFramerateLimit"] = (Action<DynValue>)SetFramerateLimit;
-            scr.Globals["GetFramerateLimit"] = (Func<DynValue>)GetFramerateLimit;
 
             // Make Texture Namespace
             Table TextureNS = new(scr);
@@ -652,7 +656,7 @@ class Midnite
             TextureNS["Height"] = (Func<string, DynValue>)TextureHeight;
 
             DrawNS["Rectangle"] = (Action<DynValue, DynValue, DynValue>)DrawRectangle;
-            DrawNS["Circle"] = (Action<DynValue, DynValue, DynValue>)DrawCircle;
+            DrawNS["Circle"] = (Action<DynValue, DynValue, DynValue, double?>)DrawCircle;
             DrawNS["Line"] = (Action<DynValue, DynValue, DynValue>)DrawLine;
             DrawNS["Triangle"] = (Action<DynValue, DynValue, DynValue, DynValue>)DrawTriangle;
             DrawNS["Clear"] = (Action<DynValue>)ClearScreen;
@@ -666,6 +670,9 @@ class Midnite
             WindowNS["Close"] = (Action)Exit;
             WindowNS["SetTitle"] = (Action<string>)SetTitle;
             WindowNS["GetTitle"] = (Func<DynValue>)GetTitle;
+            WindowNS["SetFPSLimit"] = (Action<DynValue>)SetFramerateLimit;
+            WindowNS["GetFPSLimit"] = (Func<DynValue>)GetFramerateLimit;
+            WindowNS["FPS"] = (Func<double>)FPS;
 
             CursorNS["Position"] = (Func<Table>)GetCursorPosition;
             CursorNS["OnScreen"] = (Func<bool>)IsCursorOnscreen;
@@ -679,6 +686,8 @@ class Midnite
                     "Utility",
                     "Vec2",
                     "Color",
+                    "Sprite",
+                    "Sound",
                 };
 
                 void LoadLibs(string[] Libs, Script scr)
@@ -742,7 +751,7 @@ class Midnite
                     switch (value)
                     {
                         case States.Screensaver:
-                            LoadProject(ref scr, "MNS-TransRights");
+                            LoadProject(ref scr, "MNS-BasicAnim");
 
                             break;
 
