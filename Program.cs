@@ -230,6 +230,22 @@ class Midnite
         public CLIFunctions CLI = new();
 
         static public string Version = "Alpha";
+        static public string DefaultTitle = $"Midnite v{Version}";
+        string title = DefaultTitle;
+        public string Title {
+            set
+            {
+                title = value;
+                if (Window != null)
+                {
+                    Window.SetTitle(title);
+                }
+            }
+            get
+            {
+                return title;
+            }
+        }
         static public char flagPrefix = '-';
         static public char winFlagPrefix = '/';
         public bool Verbose = false;
@@ -373,6 +389,19 @@ class Midnite
         void RelaunchWindow()
         {
             RemakeWindow();
+        }
+
+        void SetTitle(string _title)
+        {
+            if (_title != null)
+            {
+                Title = _title;
+            }
+        }
+
+        DynValue GetTitle()
+        {
+            return DynValue.NewString(Title);
         }
 
         void Exit()
@@ -558,6 +587,8 @@ class Midnite
 
         void LoadProject(ref Script scr, string project)
         {
+            title = DefaultTitle; // Don't update the window title now since we're about to remake the window. (It looks cleaner this way.)
+
             foreach (KeyValuePair<string, Texture> pair in textures)
             {
                 pair.Value.Dispose();
@@ -601,6 +632,10 @@ class Midnite
             scr.Globals.Set("Window", DynValue.NewTable(WindowNS));
             scr.Globals.Set("Cursor", DynValue.NewTable(CursorNS));
             scr.Globals.Set("Sound", DynValue.NewTable(SoundNS));
+
+            scr.Globals["SetTitle"] = (Action<string>)SetTitle;
+            scr.Globals["GetTitle"] = (Func<DynValue>)GetTitle;
+            scr.Globals["MIDNITE_VERSION"] = Version;
 
             TextureNS["Load"] = (Action<string, string>)LoadTexture;
             TextureNS["Unload"] = (Action<string>)UnloadTexture;
@@ -769,7 +804,7 @@ class Midnite
             // Since the size of Midnite is dynamic, we'll simply initialize the window size to something sensible by
             // getting the smallest resolution for a fullscreen window that the OS considers reasonable.
 
-            Window = new(videoMode, $"Midnite v{Program.Version}", windowStyle, settings);
+            Window = new(videoMode, Title, windowStyle, settings);
             if (windowPosSet)
             {
                 Window.Position = windowPos;
