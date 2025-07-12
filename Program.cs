@@ -820,7 +820,7 @@ class Midnite
 
             directories.Project = project + "//";
 
-            scr = null;
+            scr = null; // Clear & reset
             scr = new(modules);
 
             //Script scr = new Script(); // Create script
@@ -839,12 +839,14 @@ class Midnite
             Table WindowNS = new(scr);
             Table CursorNS = new(scr);
             Table AudioNS = new(scr);
+            Table SoundNS = new(scr);
 
             scr.Globals.Set("Texture", DynValue.NewTable(TextureNS)); // Add it to global namespace
             scr.Globals.Set("Draw", DynValue.NewTable(DrawNS));
             scr.Globals.Set("Window", DynValue.NewTable(WindowNS));
             scr.Globals.Set("Cursor", DynValue.NewTable(CursorNS));
-            scr.Globals.Set("Sound", DynValue.NewTable(AudioNS));
+            scr.Globals.Set("Audio", DynValue.NewTable(AudioNS));
+            scr.Globals.Set("Sound", DynValue.NewTable(SoundNS));
 
             scr.Globals["MIDNITE_VERSION"] = DynValue.NewString(Version);
 
@@ -882,6 +884,18 @@ class Midnite
             AudioNS["Length"] = (Func<string, DynValue>)AudioLength;
             AudioNS["ChannelCount"] = (Func<string, DynValue>)AudioChannelCount;
             AudioNS["SampleRate"] = (Func<string, DynValue>)AudioSampleRate;
+            AudioNS["GetLoaded"] = (Func<Table>)GetAudioLoaded;
+
+            SoundNS["Create"] = (Action<string, string>)CreateSound;
+            SoundNS["Destroy"] = (Action<string>)DestroySound;
+            SoundNS["SetPitch"] = (Action<string, DynValue>)SoundPitch;
+            SoundNS["Status"] = (Func<string, DynValue>)SoundStatus;
+            SoundNS["SetLooping"] = (Action<string, DynValue>)SoundLoop;
+            SoundNS["Play"] = (Action<string>)SoundPlay;
+            SoundNS["Pause"] = (Action<string>)SoundPause;
+            SoundNS["Stop"] = (Action<string>)SoundStop;
+            SoundNS["SetAudio"] = (Action<string, string>)SoundSetAudio;
+            SoundNS["SetVolume"] = (Action<string, DynValue>)SoundVolume;
 
             try
             {;
