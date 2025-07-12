@@ -20,6 +20,7 @@ class Midnite
 
         public Dictionary<string, Texture> textures = new();
         public Dictionary<string, SoundBuffer> sounds = new();
+        public Dictionary<string, Sound> soundInsts = new();
 
         public uint FramerateLimit
         {
@@ -257,6 +258,7 @@ class Midnite
         public uint Antialiasing = 0;
         public Script scr = new(modules);
         RenderWindow? Window;
+        RenderTexture? Render;
         RenderTarget? Target;
 
         void ClearScreen(DynValue color)
@@ -471,7 +473,7 @@ class Midnite
 
         }
 
-        void LoadSound(string name, string filename)
+        void LoadAudio(string name, string filename)
         {
             if (sounds.ContainsKey(name))
             {
@@ -481,13 +483,193 @@ class Midnite
             }
         }
 
-        void UnloadSound(string name)
+        void UnloadAudio(string name)
         {
-            if (textures.ContainsKey(name))
+            if (sounds.ContainsKey(name))
             {
                 sounds[name].Dispose();
                 sounds.Remove(name);
             }
+        }
+
+        void CreateSound(string soundName, string audioName)
+        {
+            if (soundName != null)
+            {
+                if (!soundInsts.ContainsKey(soundName))
+                {
+                    if (audioName != null)
+                    {
+                        if (sounds.ContainsKey(audioName))
+                        {
+                            soundInsts.Add(soundName, new(sounds[audioName]));
+                        }
+                    } else
+                    {
+                        soundInsts.Add(soundName, new());
+                    }
+                }
+            }
+            Sound sound = new();
+        }
+
+        void SoundSetAudio(string soundName, string audioName)
+        {
+            if (soundName != null && audioName != null)
+            {
+                if (soundInsts.ContainsKey(soundName) && sounds.ContainsKey(audioName))
+                {
+                    soundInsts[soundName].SoundBuffer = sounds[audioName];
+                }
+            }
+        }
+
+        void SoundPlay(string soundName)
+        {
+            if (soundName != null)
+            {
+                if (soundInsts.ContainsKey(soundName))
+                {
+                    soundInsts[soundName].Play();
+                }
+            }
+        }
+
+        void SoundPause(string soundName)
+        {
+            if (soundName != null)
+            {
+                if (soundInsts.ContainsKey(soundName))
+                {
+                    soundInsts[soundName].Pause();
+                }
+            }
+        }
+
+        void SoundStop(string soundName)
+        {
+            if (soundName != null)
+            {
+                if (soundInsts.ContainsKey(soundName))
+                {
+                    soundInsts[soundName].Stop();
+                }
+            }
+        }
+
+        DynValue SoundStatus(string soundName)
+        {
+            if (soundName != null)
+            {
+                if (soundInsts.ContainsKey(soundName))
+                {
+                    switch (soundInsts[soundName].Status)
+                    {
+                        case SFML.Audio.SoundStatus.Paused:
+                            return DynValue.NewString("paused");
+
+                        case SFML.Audio.SoundStatus.Stopped:
+                            return DynValue.NewString("stopped");
+
+                        case SFML.Audio.SoundStatus.Playing:
+                            return DynValue.NewString("playing");
+                    }
+                }
+            }
+
+            return DynValue.NewNil();
+        }
+
+        void SoundLoop(string soundName, DynValue looping)
+        {
+            if (soundName != null) {
+                if (soundInsts.ContainsKey(soundName))
+                {
+                    if (looping.Type == DataType.Boolean)
+                    {
+                        soundInsts[soundName].Loop = looping.Boolean;
+                    }
+                }
+            }
+        }
+
+        void SoundPitch(string soundName, DynValue pitch)
+        {
+            if (soundName != null)
+            {
+                if (soundInsts.ContainsKey(soundName))
+                {
+                    if (pitch.Type == DataType.Number)
+                    {
+                        soundInsts[soundName].Pitch = (float)pitch.Number;
+                    }
+                }
+            }
+        }
+
+        void SoundVolume(string soundName, DynValue volume)
+        {
+            if (soundName != null)
+            {
+                if (soundInsts.ContainsKey(soundName))
+                {
+                    if (volume.Type == DataType.Number)
+                    {
+                        soundInsts[soundName].Volume = (float)volume.Number;
+                    }
+                }
+            }
+        }
+
+        void DestroySound(string soundName)
+        {
+            if (soundName != null)
+            {
+                if (soundInsts.ContainsKey(soundName))
+                {
+                    soundInsts[soundName].Dispose();
+                    soundInsts.Remove(soundName);
+                }
+            }
+        }
+
+        DynValue AudioLength(string name)
+        {
+            if (name != null)
+            {
+                if (sounds.ContainsKey(name))
+                {
+                    return DynValue.NewNumber(sounds[name].Duration.AsSeconds());
+                }
+            }
+
+            return DynValue.NewNil();
+        }
+
+        DynValue AudioChannelCount(string name)
+        {
+            if (name != null)
+            {
+                if (sounds.ContainsKey(name))
+                {
+                    return DynValue.NewNumber(sounds[name].ChannelCount);
+                }
+            }
+
+            return DynValue.NewNil();
+        }
+
+        DynValue AudioSampleRate(string name)
+        {
+            if (name != null)
+            {
+                if (sounds.ContainsKey(name))
+                {
+                    return DynValue.NewNumber(sounds[name].SampleRate);
+                }
+            }
+
+            return DynValue.NewNil();
         }
 
         void DrawTexture(string name, DynValue position, DynValue tint, DynValue origin)
@@ -592,6 +774,18 @@ class Midnite
             return result;
         }
 
+        Table GetAudioLoaded()
+        {
+            Table result = new(scr);
+
+            foreach (var item in sounds)
+            {
+                result.Append(DynValue.NewString(item.Key));
+            }
+
+            return result;
+        }
+
         public enum States
         {
             TextEditor,
@@ -616,6 +810,12 @@ class Midnite
             }
             sounds.Clear();
 
+            foreach (KeyValuePair<string, Sound> pair in soundInsts)
+            {
+                pair.Value.Dispose();
+            }
+            soundInsts.Clear();
+
             Antialiasing = 0;
 
             directories.Project = project + "//";
@@ -638,13 +838,13 @@ class Midnite
             Table DrawNS = new(scr);
             Table WindowNS = new(scr);
             Table CursorNS = new(scr);
-            Table SoundNS = new(scr);
+            Table AudioNS = new(scr);
 
             scr.Globals.Set("Texture", DynValue.NewTable(TextureNS)); // Add it to global namespace
             scr.Globals.Set("Draw", DynValue.NewTable(DrawNS));
             scr.Globals.Set("Window", DynValue.NewTable(WindowNS));
             scr.Globals.Set("Cursor", DynValue.NewTable(CursorNS));
-            scr.Globals.Set("Sound", DynValue.NewTable(SoundNS));
+            scr.Globals.Set("Sound", DynValue.NewTable(AudioNS));
 
             scr.Globals["MIDNITE_VERSION"] = DynValue.NewString(Version);
 
@@ -677,33 +877,30 @@ class Midnite
             CursorNS["Position"] = (Func<Table>)GetCursorPosition;
             CursorNS["OnScreen"] = (Func<bool>)IsCursorOnscreen;
 
-            SoundNS["Load"] = (Action<string, string>)LoadSound;
-            SoundNS["Unload"] = (Action<string>)UnloadSound;
+            AudioNS["Load"] = (Action<string, string>)LoadAudio;
+            AudioNS["Unload"] = (Action<string>)UnloadAudio;
+            AudioNS["Length"] = (Func<string, DynValue>)AudioLength;
+            AudioNS["ChannelCount"] = (Func<string, DynValue>)AudioChannelCount;
+            AudioNS["SampleRate"] = (Func<string, DynValue>)AudioSampleRate;
 
             try
-            {
-                string[] Libs = {
-                    "Utility",
-                    "Vec2",
-                    "Color",
-                    "Sprite",
-                    "Sound",
-                };
+            {;
+                DirectoryInfo d = new(Directory.GetCurrentDirectory() + @"/resources/scripts/libs");
+                FileInfo[] Files = d.GetFiles("*.lua");
 
-                void LoadLibs(string[] Libs, Script scr)
+                void LoadLibs(Script scr)
                 {
-                    foreach (string Lib in Libs)
+                    foreach (FileInfo file in Files)
                     {
-                        scr.DoFile(directories.Libs + Lib + ".lua");
+                        scr.DoFile(directories.Libs + file.Name);
                     }
                 }
 
                 timer.Restart();
                 deltaTimer.Restart();
 
-                LoadLibs(Libs, scr);
+                LoadLibs(scr);
                 directories.Project = project;
-                Console.WriteLine(project);
                 scr.DoFile(directories.Project + "\\" + "main.lua");
 
                 object init = scr.Globals["Init"];
@@ -827,6 +1024,9 @@ class Midnite
             {
                 Window.Position = windowPos;
             }
+            
+
+            Render = new(videoMode.Width, videoMode.Height, settings);
             Target = Window;
 
             Window.SetFramerateLimit(FramerateLimit);
@@ -907,6 +1107,10 @@ class Midnite
                 }
                 events.ClearKeys();
                 events.ClearTypedText();
+                Texture renderTex = Render.Texture;
+                Sprite sprite = new();
+                sprite.Texture = renderTex;
+                Window.Draw(sprite);
                 Window.Display();
                 delta = deltaTimer.Restart().AsSeconds();
             }
