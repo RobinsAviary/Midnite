@@ -475,11 +475,15 @@ class Midnite
 
         void LoadAudio(string name, string filename)
         {
-            if (sounds.ContainsKey(name))
+            SoundBuffer sound;
+            try
             {
-                SoundBuffer sound;
-                sound = new(filename);
+                sound = new(directories.Project + "//" + filename);
                 sounds.Add(name, sound);
+            }
+            catch(Exception e)
+            {
+
             }
         }
 
