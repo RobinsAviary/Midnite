@@ -528,6 +528,24 @@ class Midnite
             }
         }
 
+        DynValue SoundGetAudio(string soundName)
+        {
+            if (soundName != null)
+            {
+                if (soundInsts.ContainsKey(soundName))
+                {
+                    var test = sounds.First(x => x.Value == soundInsts[soundName].SoundBuffer).Key;
+
+                    if (test != null)
+                    {
+                        return DynValue.NewString(test);
+                    }
+                }
+            }
+
+            return DynValue.NewNil();
+        }
+
         void SoundPlay(string soundName)
         {
             if (soundName != null)
@@ -584,7 +602,7 @@ class Midnite
             return DynValue.NewNil();
         }
 
-        void SoundLoop(string soundName, DynValue looping)
+        void SoundSetLoop(string soundName, DynValue looping)
         {
             if (soundName != null) {
                 if (soundInsts.ContainsKey(soundName))
@@ -597,7 +615,20 @@ class Midnite
             }
         }
 
-        void SoundPitch(string soundName, DynValue pitch)
+        DynValue SoundGetLooping(string soundName)
+        {
+            if (soundName != null)
+            {
+                if (soundInsts.ContainsKey(soundName))
+                {
+                    return DynValue.NewBoolean(soundInsts[soundName].Loop);
+                }
+            }
+
+            return DynValue.NewNil();
+        }
+
+        void SoundSetPitch(string soundName, DynValue pitch)
         {
             if (soundName != null)
             {
@@ -611,7 +642,20 @@ class Midnite
             }
         }
 
-        void SoundVolume(string soundName, DynValue volume)
+        DynValue SoundGetPitch(string soundName)
+        {
+            if (soundName != null)
+            {
+                if (soundInsts.ContainsKey(soundName))
+                {
+                    return DynValue.NewNumber(soundInsts[soundName].Pitch);
+                }
+            }
+
+            return DynValue.NewNil();
+        }
+
+        void SoundSetVolume(string soundName, DynValue volume)
         {
             if (soundName != null)
             {
@@ -623,6 +667,19 @@ class Midnite
                     }
                 }
             }
+        }
+
+        DynValue SoundGetVolume(string soundName)
+        {
+            if (soundName != null)
+            {
+                if (soundInsts.ContainsKey(soundName))
+                {
+                    return DynValue.NewNumber(soundInsts[soundName].Volume);
+                }
+            }
+
+            return DynValue.NewNil();
         }
 
         void DestroySound(string soundName)
@@ -892,14 +949,17 @@ class Midnite
 
             SoundNS["Create"] = (Action<string, string>)CreateSound;
             SoundNS["Destroy"] = (Action<string>)DestroySound;
-            SoundNS["SetPitch"] = (Action<string, DynValue>)SoundPitch;
+            SoundNS["SetPitch"] = (Action<string, DynValue>)SoundSetPitch;
+            SoundNS["GetPitch"] = (Func<string, DynValue>)SoundGetPitch;
             SoundNS["Status"] = (Func<string, DynValue>)SoundStatus;
-            SoundNS["SetLooping"] = (Action<string, DynValue>)SoundLoop;
+            SoundNS["SetLooping"] = (Action<string, DynValue>)SoundSetLoop;
+            SoundNS["GetLooping"] = (Func<string, DynValue>)SoundGetLooping;
             SoundNS["Play"] = (Action<string>)SoundPlay;
             SoundNS["Pause"] = (Action<string>)SoundPause;
             SoundNS["Stop"] = (Action<string>)SoundStop;
             SoundNS["SetAudio"] = (Action<string, string>)SoundSetAudio;
-            SoundNS["SetVolume"] = (Action<string, DynValue>)SoundVolume;
+            SoundNS["SetVolume"] = (Action<string, DynValue>)SoundSetVolume;
+            SoundNS["GetVolume"] = (Func<string, DynValue>)SoundGetVolume;
 
             try
             {;
