@@ -1323,6 +1323,7 @@ class Midnite
                 }
                 else if (arg == Program.flagPrefix + "c" || arg == commandFlagTwice + "cli")
                 {
+                    runProgram = false;
                     program.CLI.RunCLI();
                 }
                 else if (arg == Program.flagPrefix + "V" || arg == commandFlagTwice + "version")
