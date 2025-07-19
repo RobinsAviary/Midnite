@@ -3,11 +3,23 @@ using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using static Midnite;
 
 class Midnite
 {
+    static void ConsoleHighlightText()
+    {
+        Console.BackgroundColor = ConsoleColor.DarkBlue;
+        Console.ForegroundColor = ConsoleColor.White;
+    }
+
     internal class Program
     {
+        public Program()
+        {
+            CLI = new(this);
+        }
+
         Clock timer = new();
         Clock deltaTimer = new();
 
@@ -117,6 +129,38 @@ class Midnite
                     return Scripts + "libs\\";
                 }
             }
+
+            public List<String> Projects
+            {
+                get
+                {
+                    List<string> result = new();
+
+                    try
+                    {
+                        var dirs = Directory.GetDirectories(Screens);
+
+                        if (dirs.Length > 0)
+                        {
+                            foreach (string dir in dirs)
+                            {
+                                if (File.Exists(dir + "\\main.lua"))
+                                {
+                                    string dirFin = dir.Split('\\').Last();
+                                    result.Add(dirFin);
+                                    //Console.WriteLine(dirFin);
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+
+                    }
+
+                    return result;
+                }
+            }
         }
 
         public Directories directories = new();
@@ -200,6 +244,11 @@ class Midnite
         }
 
         internal class CLIFunctions {
+            Program program;
+            public CLIFunctions(Program _program)
+            {
+                program = _program;
+            }
             public void PrintHelp()
             {
                 string helpText = "Usage: Midnite [FLAGS...]" +
@@ -226,6 +275,59 @@ class Midnite
             {
                 Console.WriteLine($"'{val}' is not a valid option in this menu.");
             }
+
+            public void RunCLI()
+            {
+                // Start the CLI
+                bool loop = true;
+                Console.BackgroundColor = ConsoleColor.DarkMagenta;
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.WriteLine($"Welcome to Midnite v{Program.Version}!");
+                Console.ResetColor();
+
+                while (loop)
+                {
+                    loop = false;
+                    ConsoleHighlightText();
+                    Console.WriteLine("Menu:");
+                    Console.ResetColor();
+                    Console.WriteLine("1 - List Projects");
+                    Console.WriteLine("2 - Exit");
+                    Console.WriteLine("");
+                    Console.Write("> ");
+                    var val = Console.ReadLine();
+                    if (val == "1")
+                    {
+                        List<string> projects = program.directories.Projects;
+
+                        if (projects.Count > 0)
+                        {
+                            Console.WriteLine();
+                            ConsoleHighlightText();
+                            Console.WriteLine("Projects:");
+                            Console.ResetColor();
+                            foreach (string project in projects)
+                            {
+                                Console.WriteLine(project);
+                            }
+                        }
+
+                        Console.WriteLine();
+
+                        loop = true;
+                    }
+                    else if (val == "2")
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine("Good night!");
+                    }
+                    else
+                    {
+                        NotAnOption(val);
+                        loop = true;
+                    }
+                }
+            }
         }
 
         void HandleException(InterpreterException e)
@@ -237,11 +339,12 @@ class Midnite
             }
         }
 
-        public CLIFunctions CLI = new();
+        public CLIFunctions CLI;
 
         static public string Version = "Alpha";
         static public string DefaultTitle = $"Midnite v{Version}";
         string title = DefaultTitle;
+
         public string Title {
             set
             {
@@ -1220,62 +1323,7 @@ class Midnite
                 }
                 else if (arg == Program.flagPrefix + "c" || arg == commandFlagTwice + "cli")
                 {
-                    // Start the CLI
-                    runProgram = false;
-                    bool loop = true;
-
-                    Console.WriteLine($"Welcome to Midnite v{Program.Version}!");
-
-                    while (loop)
-                    {
-                        loop = false;
-                        Console.WriteLine("OPTIONS:");
-                        Console.WriteLine("1 - List Projects");
-                        Console.WriteLine("2 - Exit");
-                        Console.WriteLine("");
-                        Console.Write("> ");
-                        var val = Console.ReadLine();
-                        if (val == "1")
-                        {
-                            try
-                            {
-                                var dirs = Directory.GetDirectories(program.directories.Screens);
-
-                                if (dirs.Length > 0)
-                                {
-                                    Console.WriteLine();
-
-                                    foreach (string dir in dirs)
-                                    {
-                                        if (File.Exists(dir + "\\main.lua"))
-                                        {
-                                            string dirFin = dir.Split('\\').Last();
-                                            Console.WriteLine(dirFin);
-                                        }
-                                    }
-                                }
-                            }
-                            catch (UnauthorizedAccessException e)
-                            {
-                                Console.WriteLine("ERROR: Not allowed to access directory.");
-                            }
-                            finally
-                            {
-                                Console.WriteLine();
-                                loop = true;
-                            }
-                        }
-                        else if (val == "2")
-                        {
-                            Console.WriteLine("Good night!");
-                        }
-                        else
-                        {
-                            program.CLI.NotAnOption(val);
-                            loop = true;
-                        }
-                    }
-                    
+                    program.CLI.RunCLI();
                 }
                 else if (arg == Program.flagPrefix + "V" || arg == commandFlagTwice + "version")
                 {
