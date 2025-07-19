@@ -51,12 +51,13 @@ class Midnite
 
         internal class Directories
         {
-            public string Resources = "resources//";
+
+            public string Resources = "resources\\";
             public string User
             {
                 get
                 {
-                    return Resources + "user//";
+                    return Resources + "user\\";
                 }
             }
 
@@ -64,14 +65,14 @@ class Midnite
             {
                 get
                 {
-                    return Resources + "fonts//";
+                    return Resources + "fonts\\";
                 }
             }
             public string Screens
             {
                 get
                 {
-                    return User + "screens//";
+                    return User + "screens\\";
                 }
             }
 
@@ -105,7 +106,7 @@ class Midnite
             {
                 get
                 {
-                    return Resources + "scripts//";
+                    return Resources + "scripts\\";
                 }
             }
 
@@ -113,7 +114,7 @@ class Midnite
             {
                 get
                 {
-                    return Scripts + "libs//";
+                    return Scripts + "libs\\";
                 }
             }
         }
@@ -219,6 +220,11 @@ class Midnite
             public void PrintVersion()
             {
                 Console.WriteLine($"Midnite v{Program.Version}");
+            }
+
+            public void NotAnOption(string val)
+            {
+                Console.WriteLine($"'{val}' is not a valid option in this menu.");
             }
         }
 
@@ -1198,7 +1204,6 @@ class Midnite
     static void Main(string[] args)
     {
         Program program = new();
-        program.State = Program.States.Screensaver;
 
         bool runProgram = true;
 
@@ -1212,6 +1217,65 @@ class Midnite
                 {
                     runProgram = false;
                     program.CLI.PrintHelp();
+                }
+                else if (arg == Program.flagPrefix + "c" || arg == commandFlagTwice + "cli")
+                {
+                    // Start the CLI
+                    runProgram = false;
+                    bool loop = true;
+
+                    Console.WriteLine($"Welcome to Midnite v{Program.Version}!");
+
+                    while (loop)
+                    {
+                        loop = false;
+                        Console.WriteLine("OPTIONS:");
+                        Console.WriteLine("1 - List Projects");
+                        Console.WriteLine("2 - Exit");
+                        Console.WriteLine("");
+                        Console.Write("> ");
+                        var val = Console.ReadLine();
+                        if (val == "1")
+                        {
+                            try
+                            {
+                                var dirs = Directory.GetDirectories(program.directories.Screens);
+
+                                if (dirs.Length > 0)
+                                {
+                                    Console.WriteLine();
+
+                                    foreach (string dir in dirs)
+                                    {
+                                        if (File.Exists(dir + "\\main.lua"))
+                                        {
+                                            string dirFin = dir.Split('\\').Last();
+                                            Console.WriteLine(dirFin);
+                                        }
+                                    }
+                                }
+                            }
+                            catch (UnauthorizedAccessException e)
+                            {
+                                Console.WriteLine("ERROR: Not allowed to access directory.");
+                            }
+                            finally
+                            {
+                                Console.WriteLine();
+                                loop = true;
+                            }
+                        }
+                        else if (val == "2")
+                        {
+                            Console.WriteLine("Good night!");
+                        }
+                        else
+                        {
+                            program.CLI.NotAnOption(val);
+                            loop = true;
+                        }
+                    }
+                    
                 }
                 else if (arg == Program.flagPrefix + "V" || arg == commandFlagTwice + "version")
                 {
@@ -1255,6 +1319,10 @@ class Midnite
             }
         }
 
-        if (runProgram) program.Run();
+        if (runProgram)
+        {
+            program.State = Program.States.Screensaver;
+            program.Run();
+        }
     }
 }
