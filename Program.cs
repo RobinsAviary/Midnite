@@ -3,10 +3,16 @@ using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-using static Midnite;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 class Midnite
 {
+    static public bool IsFolderProject(string filename)
+    {
+        return (File.Exists(filename + "\\main.lua"));
+    }
+
     static void ConsoleHighlightText()
     {
         Console.BackgroundColor = ConsoleColor.DarkBlue;
@@ -63,6 +69,7 @@ class Midnite
 
         internal class Directories
         {
+            
 
             public string Resources = "resources\\";
             public string User
@@ -144,11 +151,9 @@ class Midnite
                         {
                             foreach (string dir in dirs)
                             {
-                                if (File.Exists(dir + "\\main.lua"))
-                                {
+                                if (IsFolderProject(dir)) {
                                     string dirFin = dir.Split('\\').Last();
                                     result.Add(dirFin);
-                                    //Console.WriteLine(dirFin);
                                 }
                             }
                         }
@@ -256,7 +261,8 @@ class Midnite
                         "\n-V, --version  Get the current version of Midnite." +
                         "\n-a, --author   Get info on the author of Midnite." +
                         "\n-h, -?, --help Displays this help message." +
-                        "\n-v, --verbose  Print verbose debug text.";
+                        "\n-v, --verbose  Print verbose debug text." +
+                        "\n-c, --cli      Launch the command line interface (Manipulate projects).";
                 Console.WriteLine(helpText);
             }
 
@@ -271,9 +277,18 @@ class Midnite
                 Console.WriteLine($"Midnite v{Program.Version}");
             }
 
-            public void NotAnOption(string val)
+            private void NotAnOption(string val)
             {
                 Console.WriteLine($"'{val}' is not a valid option in this menu.");
+            }
+
+            private string ReadLine()
+            {
+                string ReadMarker = "> ";
+                Console.Write(ReadMarker);
+                var val = Console.ReadLine();
+                if (val == null) return "";
+                return val;
             }
 
             public void RunCLI()
@@ -292,10 +307,15 @@ class Midnite
                     Console.WriteLine("Menu:");
                     Console.ResetColor();
                     Console.WriteLine("1 - List Projects");
-                    Console.WriteLine("2 - Exit");
+                    Console.WriteLine("2 - Run Project");
+                    Console.WriteLine("3 - Create Project");
+                    Console.WriteLine("4 - Delete Project");
+                    Console.WriteLine("5 - Open User Folder");
+                    Console.WriteLine("e - Exit");
                     Console.WriteLine("");
-                    Console.Write("> ");
-                    var val = Console.ReadLine();
+
+                    string val = ReadLine();
+
                     if (val == "1")
                     {
                         List<string> projects = program.directories.Projects;
@@ -317,6 +337,150 @@ class Midnite
                         loop = true;
                     }
                     else if (val == "2")
+                    {
+                        program.State = States.Screensaver;
+                        Console.WriteLine();
+                        Console.WriteLine("Enter a project name:");
+                        string projectName = ReadLine();
+
+                        string errorPrefix = $"Error while opening project '{projectName}': ";
+                        string dir = program.directories.Screens + projectName;
+
+                        if (projectName != "")
+                        {
+                            if (Directory.Exists(dir))
+                            {
+                                if (IsFolderProject(dir))
+                                {
+                                    program.LoadProject(ref program.scr, projectName);
+                                    program.Run();
+                                    program.Window = null;
+                                }
+                                else
+                                {
+                                    Console.WriteLine(errorPrefix + "Directory exists, but is not a project (missing main.lua).");
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine(errorPrefix + "No directory with this name exists.");
+                            }
+                        }
+                            
+                        Console.WriteLine();
+
+                        loop = true;
+                    }
+                    else if (val == "3")
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine("Enter a project name:");
+                        string name = ReadLine();
+                        Console.WriteLine();
+
+                        if (name != "")
+                        {
+                            string projectError = $"Error creating project '{name}': ";
+
+                            string dir = program.directories.Screens + name;
+
+                            try
+                            {
+                                if (!IsFolderProject(dir))
+                                {
+                                    if (!Directory.Exists(dir))
+                                    {
+                                        Directory.CreateDirectory(dir);
+                                        File.Create(dir + "\\" + "main.lua").Dispose();
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine(projectError + "A directory already exists here.");
+                                        Console.WriteLine();
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine(projectError + "A project already exists here.");
+                                    Console.WriteLine();
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(projectError + e.Message);
+                                Console.WriteLine();
+                            }
+                        }
+
+                        loop = true;
+                    }
+                    else if (val == "4")
+                    {
+                        loop = true;
+                        Console.WriteLine();
+                        Console.WriteLine("Enter a project name:");
+                        string name = ReadLine();
+                        Console.WriteLine();
+
+                        if (name != "")
+                        {
+                            string projectError = $"Error deleting project '{name}': ";
+
+                            string dir = program.directories.Screens + name;
+
+                            if (IsFolderProject(dir))
+                            {
+                                Directory.Delete(dir, true);
+                            }
+                            else if (Directory.Exists(dir))
+                            {
+                                Console.WriteLine(projectError + "Directory exists, but is not a project.");
+                            }
+                            else
+                            {
+                                Console.WriteLine(projectError + "Project does not exist.");
+                            }
+                        }
+                    }
+                    else if (val == "5")
+                    {
+                        Console.WriteLine();
+
+                        loop = true;
+                        string dir = AppContext.BaseDirectory + program.directories.User;
+
+                        string prog = "";
+
+                        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                        {
+                            prog = "explorer.exe";
+                        } 
+                        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                        {
+                            prog = "open";
+                        }
+                        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                        {
+                            prog = "mimeopen";
+                        }
+
+                        if (prog != "")
+                        {
+                            try
+                            {
+                                Process.Start(prog, dir);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine($"Error while trying to open user folder: {e.Message}");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("This is not supported on your OS yet, sorry!");
+                        }
+                    }
+                    else if (val == "e")
                     {
                         Console.WriteLine();
                         Console.WriteLine("Good night!");
@@ -964,7 +1128,7 @@ class Midnite
 
         private States _state = States.TextEditor;
 
-        void LoadProject(ref Script scr, string project)
+        public void LoadProject(ref Script scr, string project)
         {
             title = DefaultTitle; // Don't update the window title now since we're about to remake the window. (It looks cleaner this way.)
 
@@ -1135,7 +1299,7 @@ class Midnite
                     switch (value)
                     {
                         case States.Screensaver:
-                            LoadProject(ref scr, "MNS-BasicAnim");
+                            
 
                             break;
 
@@ -1246,60 +1410,58 @@ class Midnite
         {
             Textbox file = new(this);
 
-            //Font font = new("resources/fonts/JetBrainsMono-Regular.ttf");
-            //font.SetSmooth(true);
-
-            //file.Font = font;
-
-            while (Window.IsOpen)
+            if (Window != null)
             {
-                Window.DispatchEvents();
-
-                if (IsKeyPressed(Keyboard.Key.Escape) || (WinScreen && IsKeyPressed(Keyboard.Key.Space)))
+                while (Window.IsOpen)
                 {
-                    Window.Close();
-                }
+                    Window.DispatchEvents();
 
-                if (IsKeyPressed(Keyboard.Key.F11))
-                {
-                    Fullscreen = !Fullscreen;
-                    RemakeWindow();
-                }
+                    if (IsKeyPressed(Keyboard.Key.Escape) || (WinScreen && IsKeyPressed(Keyboard.Key.Space)))
+                    {
+                        Window.Close();
+                    }
 
-                if (Keyboard.IsKeyPressed(Keyboard.Key.LControl) && IsKeyPressed(Keyboard.Key.R))
-                {
-                    LoadProject(ref scr, directories.RawProject);
-                }
+                    if (IsKeyPressed(Keyboard.Key.F11))
+                    {
+                        Fullscreen = !Fullscreen;
+                        RemakeWindow();
+                    }
 
-                Window.Clear(Color.Black);
-                switch (State)
-                {
-                    case States.TextEditor:
-                        file.Step();
-                        file.Draw(Window);
-                    break;
+                    if (Keyboard.IsKeyPressed(Keyboard.Key.LControl) && IsKeyPressed(Keyboard.Key.R))
+                    {
+                        LoadProject(ref scr, directories.RawProject);
+                    }
 
-                    case States.Screensaver:
-                        object update = scr.Globals["Update"];
-                        try
-                        {
-                            if (update != null) scr.Call(update);
-                        }
-                        catch(InterpreterException e)
-                        {
-                            HandleException(e);
-                        }
-                        
-                        break;
+                    Window.Clear(Color.Black);
+                    switch (State)
+                    {
+                        case States.TextEditor:
+                            file.Step();
+                            file.Draw(Window);
+                            break;
+
+                        case States.Screensaver:
+                            object update = scr.Globals["Update"];
+                            try
+                            {
+                                if (update != null) scr.Call(update);
+                            }
+                            catch (InterpreterException e)
+                            {
+                                HandleException(e);
+                            }
+
+                            break;
+                    }
+                    events.ClearKeys();
+                    events.ClearTypedText();
+                    Texture renderTex = Render.Texture;
+                    Sprite sprite = new();
+                    sprite.Texture = renderTex;
+                    Window.Draw(sprite);
+                    Window.Display();
+                    delta = deltaTimer.Restart().AsSeconds();
                 }
-                events.ClearKeys();
-                events.ClearTypedText();
-                Texture renderTex = Render.Texture;
-                Sprite sprite = new();
-                sprite.Texture = renderTex;
-                Window.Draw(sprite);
-                Window.Display();
-                delta = deltaTimer.Restart().AsSeconds();
             }
         }
     }
@@ -1371,6 +1533,7 @@ class Midnite
         if (runProgram)
         {
             program.State = Program.States.Screensaver;
+            program.LoadProject(ref program.scr, "MNS-BasicAnim");
             program.Run();
         }
     }
