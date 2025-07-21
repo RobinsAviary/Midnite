@@ -21,6 +21,29 @@ class Midnite
 
     internal class Program
     {
+        internal class WindowState
+        {
+            public WindowState()
+            {
+                Reset();
+            }
+
+            public void Reset()
+            {
+                defined = false;
+                msaa = 0;
+            }
+
+            public bool defined = false;
+
+            public Vector2u size = new(0, 0);
+            public Vector2i position = new(0, 0);
+            public bool fullscreen = false;
+            public uint msaa = 0;
+        }
+
+        public WindowState winState = new();
+
         public Program()
         {
             CLI = new(this);
@@ -354,7 +377,6 @@ class Midnite
                                 {
                                     program.LoadProject(ref program.scr, projectName);
                                     program.Run();
-                                    program.Window = null;
                                 }
                                 else
                                 {
@@ -527,8 +549,8 @@ class Midnite
         static public char winFlagPrefix = '/';
         public bool Verbose = false;
         public bool WinScreen = false;
-        public bool Fullscreen = false;
-        public uint Antialiasing = 0;
+        //public bool Fullscreen = false;
+        //public uint Antialiasing = 0;
         public Script scr = new(modules);
         RenderWindow? Window;
         RenderTexture? Render;
@@ -670,12 +692,6 @@ class Midnite
 
             return true;
         }
-
-        void RelaunchWindow()
-        {
-            RemakeWindow();
-        }
-
         void SetTitle(string _title)
         {
             if (_title != null)
@@ -1150,7 +1166,7 @@ class Midnite
             }
             soundInsts.Clear();
 
-            Antialiasing = 0;
+            winState.msaa = 0;
 
             directories.Project = project + "//";
 
@@ -1271,14 +1287,12 @@ class Midnite
                     Console.WriteLine("WARNING: No 'init()' function found. Skipping...");
                 }
 
-                RelaunchWindow();
+                RemakeWindow();
 
                 if (scr.Globals["Update"] == null)
                 {
-                    Console.WriteLine("WARNING: Your project is missing the typical 'Update()' entry point.");
+                    Console.WriteLine("WARNING: Project is missing the typical 'Update()' entry point.");
                 }
-
-                
             }
             catch (InterpreterException e)
             {
@@ -1333,47 +1347,56 @@ class Midnite
             }
         }
 
-        public void RemakeWindow()
+        public void RemakeWindow(bool toggleFullscreen = false)
         {
             Styles windowStyle = Styles.Default;
 
             VideoMode videoMode;
-            bool windowPosSet = false;
-            Vector2i windowPos = new();
 
+            // Since the size of Midnite is dynamic, we'll simply initialize the window size to something sensible by
+            // getting the smallest resolution for a fullscreen window that the OS considers reasonable.
             videoMode = VideoMode.FullscreenModes.Last();
+
+            if (winState.defined)
+            {
+                Vector2u size = winState.size;
+
+                videoMode = new(size.X, size.Y);
+            }
 
             if (Window != null)
             {
-                if (!Fullscreen)
+                if (!winState.fullscreen)
                 {
-                    Vector2u size = Window.Size;
-
-                    videoMode = new(size.X, size.Y);
-                    windowPos = Window.Position;
-                    windowPosSet = true;
+                    Console.WriteLine("ping!");
+                    winState.position = Window.Position;
+                    winState.size = Window.Size;
+                    winState.defined = true;
                 }
 
-                if (Fullscreen)
+                if (toggleFullscreen)
                 {
-                    windowStyle = Styles.None;
-                    videoMode = VideoMode.DesktopMode;
+                    winState.fullscreen = !winState.fullscreen;
                 }
 
                 Window.Close();
             }
-            
+
+            if (winState.fullscreen)
+            {
+                windowStyle = Styles.None;
+                videoMode = VideoMode.DesktopMode;
+            }
 
             ContextSettings settings = new();
-            settings.AntialiasingLevel = Antialiasing;
-
-            // Since the size of Midnite is dynamic, we'll simply initialize the window size to something sensible by
-            // getting the smallest resolution for a fullscreen window that the OS considers reasonable.
+            settings.AntialiasingLevel = winState.msaa;
 
             Window = new(videoMode, Title, windowStyle, settings);
-            if (windowPosSet)
+
+            if (winState.defined && !winState.fullscreen)
             {
-                Window.Position = windowPos;
+                Window.Position = winState.position;
+                Window.Size = winState.size;
             }
             
 
@@ -1395,15 +1418,20 @@ class Midnite
             Window.MouseButtonReleased += events.MouseButtonReleased;
         }
 
+        public void RelaunchWindow()
+        {
+            RemakeWindow();
+        }
+
         public void SetAntialiasingLevel(DynValue level)
         {
             float _level = DynValueToFloat(level);
-            Antialiasing = (uint)_level;
+            winState.msaa = (uint)_level;
         }
 
         public DynValue GetAntialiasingLevel()
         {
-            return DynValue.NewNumber(Antialiasing);
+            return DynValue.NewNumber(winState.msaa);
         }
 
         public void Run()
@@ -1423,8 +1451,7 @@ class Midnite
 
                     if (IsKeyPressed(Keyboard.Key.F11))
                     {
-                        Fullscreen = !Fullscreen;
-                        RemakeWindow();
+                        RemakeWindow(true);
                     }
 
                     if (Keyboard.IsKeyPressed(Keyboard.Key.LControl) && IsKeyPressed(Keyboard.Key.R))
