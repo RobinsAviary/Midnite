@@ -1,6 +1,6 @@
+# Midnite
 [![](git-resources/MidniteLogo.png)](https://robinsaviary.com/midnite/)
 
-# Midnite
 A toy program that allows you to easily create and share screensavers - All written in [Lua](https://www.lua.org/)!
 
 A spirtual successor to [After Dark](https://en.wikipedia.org/wiki/After_Dark_(software)).
