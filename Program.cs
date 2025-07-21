@@ -644,53 +644,78 @@ class Midnite
             Target.Draw(shape);
         }
 
-        Table GetWindowSize()
+        DynValue GetWindowSize()
         {
-            Table t = new(scr);
+            if (Window != null)
+            {
+                Table t = new(scr);
 
-            Vector2u windowSize = Window.Size;
+                Vector2u windowSize = Window.Size;
 
-            return Vec2New(new(windowSize.X, windowSize.Y));
+                return DynValue.NewTable(Vec2New(new(windowSize.X, windowSize.Y)));
+            }
+
+            return DynValue.NewNil();
         }
 
         DynValue GetWindowWidth()
         {
-            Vector2u windowSize = Window.Size;
+            if (Window != null)
+            {
+                Vector2u windowSize = Window.Size;
 
-            return DynValue.NewNumber(windowSize.X);
+                return DynValue.NewNumber(windowSize.X);
+            }
+
+            return DynValue.NewNil();
         }
 
         DynValue GetWindowHeight()
         {
-            Vector2u windowSize = Window.Size;
+            if (Window != null)
+            {
+                Vector2u windowSize = Window.Size;
 
-            return DynValue.NewNumber(windowSize.Y);
+                return DynValue.NewNumber(windowSize.Y);
+            }
+
+            return DynValue.NewNil();
         }
 
-        Table GetCursorPosition()
+        DynValue GetCursorPosition()
         {
-            Vector2i mousePosition = Mouse.GetPosition(Window);
+            if (Window != null)
+            {
+                Vector2i mousePosition = Mouse.GetPosition(Window);
 
-            return Vec2New(new(mousePosition.X, mousePosition.Y));
+                return DynValue.NewTable(Vec2New(new(mousePosition.X, mousePosition.Y)));
+            }
+
+            return DynValue.NewNil();
         }
 
         bool IsCursorOnscreen()
         {
-            Vector2i _position = Mouse.GetPosition(Window);
-
-            if (_position.X < 0 || _position.Y < 0)
+            if (Window != null)
             {
-                return false;
+                Vector2i _position = Mouse.GetPosition(Window);
+
+                if (_position.X < 0 || _position.Y < 0)
+                {
+                    return false;
+                }
+
+                Vector2u _size = Window.Size;
+
+                if (_position.X > _size.X || _position.Y > _size.Y)
+                {
+                    return false;
+                }
+
+                return true;
             }
 
-            Vector2u _size = Window.Size;
-
-            if (_position.X > _size.X || _position.Y > _size.Y)
-            {
-                return false;
-            }
-
-            return true;
+            return false;
         }
         void SetTitle(string _title)
         {
@@ -952,7 +977,7 @@ class Midnite
                 {
                     if (volume.Type == DataType.Number)
                     {
-                        soundInsts[soundName].Volume = (float)volume.Number;
+                        soundInsts[soundName].Volume = (float)volume.Number*100;
                     }
                 }
             }
@@ -1215,7 +1240,7 @@ class Midnite
             DrawNS["Texture"] = (Action<string, DynValue, DynValue, DynValue>)DrawTexture;
             DrawNS["TextureSR"] = (Action<string, DynValue, DynValue, DynValue, DynValue, DynValue>)DrawTextureSR;
 
-            WindowNS["Size"] = (Func<Table>)GetWindowSize;
+            WindowNS["Size"] = (Func<DynValue>)GetWindowSize;
             WindowNS["Width"] = (Func<DynValue>)GetWindowWidth;
             WindowNS["Height"] = (Func<DynValue>)GetWindowHeight;
             WindowNS["Relaunch"] = scr.Globals["RelaunchWindow"] = (Action)RelaunchWindow;
@@ -1226,7 +1251,7 @@ class Midnite
             WindowNS["GetFPSLimit"] = (Func<DynValue>)GetFramerateLimit;
             WindowNS["FPS"] = (Func<double>)FPS;
 
-            CursorNS["Position"] = (Func<Table>)GetCursorPosition;
+            CursorNS["Position"] = (Func<DynValue>)GetCursorPosition;
             CursorNS["OnScreen"] = (Func<bool>)IsCursorOnscreen;
 
             AudioNS["Load"] = (Action<string, string>)LoadAudio;
@@ -1368,7 +1393,6 @@ class Midnite
             {
                 if (!winState.fullscreen)
                 {
-                    Console.WriteLine("ping!");
                     winState.position = Window.Position;
                     winState.size = Window.Size;
                     winState.defined = true;
