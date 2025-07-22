@@ -10,3 +10,6 @@ A spirtual successor to [After Dark](https://en.wikipedia.org/wiki/After_Dark_(s
 - [MoonSharp](https://www.moonsharp.org/) is used for scripting.
 
 ![](git-resources/example.png)
+
+# Docs
+You can find all the docs [here](https://robinsaviary.com/midnite/).
