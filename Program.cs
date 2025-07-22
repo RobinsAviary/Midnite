@@ -8,6 +8,10 @@ using System.Runtime.InteropServices;
 
 class Midnite
 {
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    static extern bool AllocConsole();
+
     static public bool IsFolderProject(string filename)
     {
         return (File.Exists(filename + "\\main.lua"));
@@ -717,6 +721,7 @@ class Midnite
 
             return false;
         }
+
         void SetTitle(string _title)
         {
             if (_title != null)
@@ -1223,7 +1228,10 @@ class Midnite
             scr.Globals.Set("Audio", DynValue.NewTable(AudioNS));
             scr.Globals.Set("Sound", DynValue.NewTable(SoundNS));
 
-            scr.Globals["MIDNITE_VERSION"] = DynValue.NewString(Version);
+            Table MidniteInfo = new(scr);
+            MidniteInfo["version"] = DynValue.NewString(Version);
+
+            scr.Globals["_MIDNITE"] = DynValue.NewTable(MidniteInfo);
 
             TextureNS["Load"] = (Action<string, string>)LoadTexture;
             TextureNS["Unload"] = (Action<string>)UnloadTexture;
@@ -1460,6 +1468,8 @@ class Midnite
 
         public void Run()
         {
+            AllocConsole();
+
             Textbox file = new(this);
 
             if (Window != null)
