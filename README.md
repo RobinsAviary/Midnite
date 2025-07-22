@@ -12,4 +12,4 @@ A spirtual successor to [After Dark](https://en.wikipedia.org/wiki/After_Dark_(s
 ![](git-resources/example.png)
 
 # Docs
-You can find all the docs [here](https://robinsaviary.com/midnite/).
+You can find all the docs [here](https://robinsaviary.com/midnite/docs).
