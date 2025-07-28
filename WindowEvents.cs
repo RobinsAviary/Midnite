@@ -1,6 +1,8 @@
 ﻿using SFML.Window;
 using SFML.Graphics;
 
+namespace Midnite;
+
 public class WindowEvents
 {
     private List<Keyboard.Key> pressedKeys = [];

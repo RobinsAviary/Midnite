@@ -2,6 +2,8 @@
 using SFML.System;
 using SFML.Window;
 
+namespace Midnite;
+
 public class WinState
 {
     public RenderWindow window;

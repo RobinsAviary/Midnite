@@ -2,9 +2,8 @@
 bool windowsScreensaver = false;
 bool verbose = false;
 
-ProgramClass program = new();
-CLI cli = new(program);
+Midnite.ProgramClass program = new();
+Midnite.CLI cli = new(program);
 
 cli.ProcessArgs(args);
-
 program.RunProject();

@@ -1,10 +1,13 @@
 ﻿using MoonSharp.Interpreter;
 using SFML.Window;
 
+namespace Midnite;
+
 public class LuaScript
 {
     LuaFunc luaFunc = new();
     ProgramClass program;
+    Script? script;
 
     Directories directories = new();
 
@@ -13,7 +16,6 @@ public class LuaScript
 
     public LuaScript(ProgramClass _program)
     {
-        RemakeScript();
         program = _program;
     }
 
@@ -23,8 +25,16 @@ public class LuaScript
         script = new(modules);
 
         script.Globals["HelloWorld"] = (Action)luaFunc.HelloWorld;
+    }
+
+    // 
+    public void InitProject()
+    {
+        RemakeScript();
 
         script.DoFile(directories.project.fullpath + directories.mainFile + directories.luaExt);
+
+        CallLuaFunction("Init");
     }
 
     // Displays lua-scripting-related exceptions to the end user.
@@ -40,19 +50,20 @@ public class LuaScript
     // Attempt to call a global Lua function.
     public void CallLuaFunction(string function)
     {
-        // Grab the object from globals
-        object func = script.Globals[function];
-        try
+        if (script != null)
         {
-            // If it exists, let's call it.
-            if (func != null) script.Call(func);
-        }
-        catch (InterpreterException e)
-        {
-            // Throw exception for user if Lua script error occurs.
-            LuaException(e);
+            // Grab the object from globals
+            object func = script.Globals[function];
+            try
+            {
+                // If it exists, let's call it.
+                if (func != null) script.Call(func);
+            }
+            catch (InterpreterException e)
+            {
+                // Throw exception for user if Lua script error occurs.
+                LuaException(e);
+            }
         }
     }
-
-    Script script;
 }

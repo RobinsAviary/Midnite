@@ -1,6 +1,8 @@
 ﻿using SFML.Graphics;
 using SFML.System;
 
+namespace Midnite;
+
 public class RenderInfo
 {
     public RenderWindow? window;

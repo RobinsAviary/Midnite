@@ -1,4 +1,6 @@
-﻿public class CLI
+﻿namespace Midnite;
+
+public class CLI
 {
     ProgramClass program;
 

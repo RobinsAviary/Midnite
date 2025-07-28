@@ -1,4 +1,6 @@
-﻿public class Directories
+﻿namespace Midnite;
+
+public class Directories
 {
     // Allows us to access the folder name *and* the full path in one object.
 

@@ -1,4 +1,6 @@
-﻿public class ProjectInfo
+﻿namespace Midnite;
+
+public class ProjectInfo
 {
     public ProjectInfo()
     {
