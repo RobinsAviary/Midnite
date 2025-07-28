@@ -1,38 +1,23 @@
 ﻿using MoonSharp.Interpreter;
-using SFML.System;
-using SFML.Graphics;
 using SFML.Audio;
+using SFML.Graphics;
+using SFML.System;
+using SFML.Window;
 
 public class ProgramClass
 {
-    LuaFunc luaFunc = new();
-
-    // Limited set of modules for users :)
-    static CoreModules modules = CoreModules.Preset_HardSandbox | CoreModules.Metatables | CoreModules.ErrorHandling | CoreModules.Coroutine | CoreModules.OS_Time;
-
-    Script script;
-
-    void RemakeScript()
-    {
-        script = new(modules);
-
-        script.Globals["HelloWorld"] = (Action)luaFunc.HelloWorld;
-
-
-    }
-
     public ProgramClass()
     {
-        RemakeScript();
+        luaScript = new(this);
     }
-
-    WindowEvents events = new();
 
     public string version = "Alpha";
     public bool verbose = false;
     public bool windowsMode = false;
 
     RenderInfo renderInfo = new();
+    public WinState winState = new();
+    LuaScript luaScript;
 
     public enum States
     {
@@ -42,6 +27,7 @@ public class ProgramClass
 
     public States state = States.Screensaver;
 
+    // Spits out a different message defending on if the input is truey or falsey.
     public string BoolToString(bool value, string falseyText = "FALSE", string trueyText = "TRUE")
     {
         if (value)
@@ -50,9 +36,10 @@ public class ProgramClass
         }
         else
 
-            return falseyText;
+        return falseyText;
     }
 
+    // Turns a DynValue into a Color.
     public Color DynValueToColor(DynValue T)
     {
         if (T.Type == DataType.Table)
@@ -92,6 +79,7 @@ public class ProgramClass
         return Color.Black;
     }
 
+    // Turns a dynvalue into a Vector2f.
     public Vector2f DynValueToVector2f(DynValue T)
     {
         Vector2f result = new(0, 0);
@@ -116,6 +104,7 @@ public class ProgramClass
         return result;
     }
 
+    // Turns a dynvalue into a float. Has an optional default value (to match 'or' behavior in lua).
     public float DynValueToFloat(DynValue number, float defaultValue = 0)
     {
         if (number.Type == DataType.Number)
@@ -126,37 +115,22 @@ public class ProgramClass
         return defaultValue;
     }
 
-    RenderWindow window;
+    
 
-    public void RemakeWindow()
-    {
-        window = new(new(500, 500), "Test");
-        window.Closed += events.Closed;
-        window.Resized += events.Resized;
-        window.KeyPressed += events.KeyPressed;
-        window.KeyReleased += events.KeyReleased;
-        window.TextEntered += events.TextEntered;
-        window.GainedFocus += events.FocusGained;
-        window.LostFocus += events.FocusLost;
-        window.MouseEntered += events.MouseEntered;
-        window.MouseLeft += events.MouseLeft;
-        window.MouseButtonPressed += events.MouseButtonPressed;
-        window.MouseButtonReleased += events.MouseButtonReleased;
-    }
-
+    // Run the current project.
     public void RunProject()
     {
-        RemakeWindow();
+        winState.RemakeWindow();
 
         // Main loop
-        while (window.IsOpen)
+        while (winState.window.IsOpen)
         {
-            window.DispatchEvents();
+            winState.window.DispatchEvents();
 
+            luaScript.CallLuaFunction("Update");
 
-
-            events.ClearKeys();
-            window.Display();
+            winState.events.ClearKeys();
+            winState.window.Display();
         }
     }
 }

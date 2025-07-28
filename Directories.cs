@@ -2,16 +2,16 @@
 {
     // Allows us to access the folder name *and* the full path in one object.
 
-    Dir resources = new();
-    Dir fonts = new();
-    Dir images = new();
-    Dir scripts = new();
-    Dir user = new();
-    Dir screens = new();
-    Dir? project;
+    public Dir resources = new();
+    public Dir fonts = new();
+    public Dir images = new();
+    public Dir scripts = new();
+    public Dir user = new();
+    public Dir screens = new();
+    public Dir? project;
 
-    string luaExt = ".lua";
-    string mainFile = "main";
+    public string luaExt = ".lua";
+    public string mainFile = "main";
 
     public Directories()
     {
@@ -37,7 +37,7 @@
         // TODO: Make this dynamic
         project = new();
         project.folder = "test\\";
-        project.fullpath = user.fullpath + project.folder;
+        project.fullpath = screens.fullpath + project.folder;
     }
 
     public List<String> GetProjects()
