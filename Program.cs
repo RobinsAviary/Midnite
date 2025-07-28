@@ -11,14 +11,15 @@ public class ProgramClass
     public ProgramClass()
     {
         luaScript = new(this);
+        winState = new(this);
     }
 
     public string version = "Alpha";
     public bool verbose = false;
     public bool windowsMode = false;
 
-    RenderInfo renderInfo = new();
-    public WinState winState = new();
+    public RenderInfo renderInfo = new();
+    public WinState winState;
     LuaScript luaScript;
 
     public enum States
@@ -45,6 +46,7 @@ public class ProgramClass
     public void RunProject()
     {
         winState.RemakeWindow();
+        renderInfo.target = winState.window;
         luaScript.InitProject();
 
         // Main loop

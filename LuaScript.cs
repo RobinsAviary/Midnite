@@ -5,8 +5,8 @@ namespace Midnite;
 
 public class LuaScript
 {
-    LuaFunc luaFunc = new();
-    ProgramClass program;
+    LuaFunc luaFunc;
+    public ProgramClass program;
     Script? script;
 
     Directories directories = new();
@@ -17,14 +17,27 @@ public class LuaScript
     public LuaScript(ProgramClass _program)
     {
         program = _program;
+        luaFunc = new(this);
     }
 
     // (Re)Set up the Lua scripting context.
     void RemakeScript()
     {
+        // Set up a clean script object for users.
         script = new(modules);
 
+        // Load standard libraries
+        string[] libs = Directory.GetFiles(directories.libs.fullpath);
+        foreach (string lib in libs)
+        {
+            if (lib.EndsWith(directories.luaExt))
+            {
+                script.DoFile(lib);
+            }
+        }
+
         script.Globals["HelloWorld"] = (Action)luaFunc.HelloWorld;
+        script.Globals["Clear"] = (Action)luaFunc.Clear;
     }
 
     // 

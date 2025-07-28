@@ -4,8 +4,15 @@ using SFML.System;
 
 namespace Midnite;
 
-public class LuaFunc()
+public class LuaFunc
 {
+    LuaScript luaScript;
+
+    public LuaFunc(LuaScript _luaScript)
+    {
+        luaScript = _luaScript;
+    }
+
     // Turns a DynValue into a Color.
     public Color DynValueToColor(DynValue T)
     {
@@ -85,5 +92,10 @@ public class LuaFunc()
     public void HelloWorld()
     {
         Console.WriteLine("Hello, World!");
+    }
+
+    public void Clear()
+    {
+        luaScript.program.renderInfo.target.Clear(Color.Blue);
     }
 }

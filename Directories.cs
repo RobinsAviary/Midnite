@@ -10,6 +10,7 @@ public class Directories
     public Dir scripts = new();
     public Dir user = new();
     public Dir screens = new();
+    public Dir libs = new();
     public Dir? project;
 
     public string luaExt = ".lua";
@@ -35,6 +36,9 @@ public class Directories
 
         screens.folder = "screens\\";
         screens.fullpath = user.fullpath + screens.folder;
+
+        libs.folder = "libs\\";
+        libs.fullpath = scripts.fullpath + libs.folder;
 
         // TODO: Make this dynamic
         project = new();

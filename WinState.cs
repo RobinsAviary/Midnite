@@ -6,14 +6,29 @@ namespace Midnite;
 
 public class WinState
 {
-    public RenderWindow window;
+    public RenderWindow? window;
 
     public WindowEvents events = new();
+
+    ProgramClass program;
+
+    public WinState(ProgramClass _program)
+    {
+        program = _program;
+    }
 
     // (Re)Creates the window with all the necessary events.
     public void RemakeWindow()
     {
-        window = new(new(500, 500), "Test");
+        // Fallback resolution
+        VideoMode mode = new(420, 360);
+
+        if (VideoMode.FullscreenModes.Length > 0)
+        {
+            mode = VideoMode.FullscreenModes.Last();
+        }
+
+        window = new(mode, "Midnite v" + program.version);
         window.Closed += events.Closed;
         window.Resized += events.Resized;
         window.KeyPressed += events.KeyPressed;
@@ -25,11 +40,6 @@ public class WinState
         window.MouseLeft += events.MouseLeft;
         window.MouseButtonPressed += events.MouseButtonPressed;
         window.MouseButtonReleased += events.MouseButtonReleased;
-    }
-
-    public WinState()
-    {
-
     }
 
     public string? title;
