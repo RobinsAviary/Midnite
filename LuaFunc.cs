@@ -1,6 +1,4 @@
-﻿
-
-public class LuaFunc()
+﻿public class LuaFunc()
 {
     public void HelloWorld()
     {

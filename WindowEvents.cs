@@ -1,6 +1,5 @@
-﻿using SFML.Graphics;
-using SFML.System;
-using SFML.Window;
+﻿using SFML.Window;
+using SFML.Graphics;
 
 public class WindowEvents
 {

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-public class Directories
+﻿public class Directories
 {
     // Allows us to access the folder name *and* the full path in one object.
 
