@@ -199,4 +199,44 @@ public class LuaFunc
             target.Draw(shape);
         }
     }
+    
+    // Helper function
+    DynValue Vec2New(Vector2f pos)
+    {
+        if (luaScript.script != null)
+        {
+            DynValue newFunc = ((Table)luaScript.script.Globals["Vec2"]).Get("New");
+
+            return DynValue.NewTable(luaScript.script.Call(newFunc, [pos.X, pos.Y]).Table);
+        }
+
+        return DynValue.NewNil();
+    }
+
+    DynValue ColorNew(Color color)
+    {
+        if (luaScript.script != null)
+        {
+            DynValue newFunc = ((Table)luaScript.script.Globals["Color"]).Get("New");
+
+            return DynValue.NewTable(luaScript.script.Call(newFunc, [color.R, color.G, color.B, color.A]).Table);
+        }
+
+        return DynValue.NewNil();
+    }
+
+    public DynValue WindowSize()
+    {
+        RenderWindow? renderWindow = luaScript.program.winState.window;
+
+        if (renderWindow != null)
+        {
+            Vector2u windowSize = renderWindow.Size;
+            Vector2f winSize = new(windowSize.X, windowSize.Y);
+
+            return Vec2New(winSize);
+        }
+
+        return DynValue.NewNil();
+    }
 }

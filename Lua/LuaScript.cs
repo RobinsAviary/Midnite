@@ -6,7 +6,7 @@ public class LuaScript
 {
     LuaFunc luaFunc;
     public ProgramClass program;
-    Script? script;
+    public Script? script;
 
     Directories directories = new();
 
@@ -45,6 +45,10 @@ public class LuaScript
         DrawNS["Circle"] = (Action <DynValue, DynValue, DynValue, double?>)luaFunc.DrawCircle;
 
         script.Globals["Draw"] = DynValue.NewTable(DrawNS);
+
+        Table WindowNS = new(script);
+        WindowNS["Size"] = (Func<DynValue>)luaFunc.WindowSize;
+        script.Globals["Window"] = DynValue.NewTable(WindowNS);
     }
 
     // 
