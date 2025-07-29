@@ -1,5 +1,4 @@
 ﻿using MoonSharp.Interpreter;
-using SFML.Window;
 
 namespace Midnite;
 
@@ -37,7 +36,15 @@ public class LuaScript
         }
 
         script.Globals["HelloWorld"] = (Action)luaFunc.HelloWorld;
-        script.Globals["Clear"] = (Action)luaFunc.Clear;
+
+        Table DrawNS = new(script);
+        DrawNS["Clear"] = (Action<DynValue>)luaFunc.Clear;
+        DrawNS["Line"] = (Action<DynValue, DynValue, DynValue>)luaFunc.DrawLine;
+        DrawNS["Triangle"] = (Action<DynValue, DynValue, DynValue, DynValue>)luaFunc.DrawTriangle;
+        DrawNS["Rectangle"] = (Action<DynValue, DynValue, DynValue>)luaFunc.DrawRectangle;
+        DrawNS["Circle"] = (Action <DynValue, DynValue, DynValue, double?>)luaFunc.DrawCircle;
+
+        script.Globals["Draw"] = DynValue.NewTable(DrawNS);
     }
 
     // 

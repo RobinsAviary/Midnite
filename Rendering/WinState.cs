@@ -1,4 +1,5 @@
-﻿using SFML.Graphics;
+﻿using MoonSharp.Interpreter;
+using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 
@@ -15,6 +16,7 @@ public class WinState
     public WinState(ProgramClass _program)
     {
         program = _program;
+        title = "Midnite v" + program.version;
     }
 
     // (Re)Creates the window with all the necessary events.
@@ -29,6 +31,11 @@ public class WinState
         }
 
         window = new(mode, "Midnite v" + program.version);
+        WindowEvents();
+    }
+
+    public void WindowEvents()
+    {
         window.Closed += events.Closed;
         window.Resized += events.Resized;
         window.KeyPressed += events.KeyPressed;
@@ -42,11 +49,16 @@ public class WinState
         window.MouseButtonReleased += events.MouseButtonReleased;
     }
 
-    public string? title;
+    string title;
 
     public void SetTitle(string _title)
     {
         title = _title;
+
+        if (window != null)
+        {
+            window.SetTitle(title);
+        }
     }
 
     public uint framerateLimit = 0;
@@ -54,7 +66,28 @@ public class WinState
     public void SetFramerateLimit(uint _framerateLimit)
     {
         framerateLimit = _framerateLimit;
+
+        if (window != null)
+        {
+            window.SetFramerateLimit(framerateLimit);
+        }
     }
 
     Vector2i? position;
+
+    Vector2u? size;
+
+    public Vector2u? GetSize()
+    {
+        if (window != null)
+        {
+            return window.Size;
+        }
+        else if (size != null)
+        {
+            return size;
+        }
+
+        return null;
+    }
 }
